@@ -6,7 +6,7 @@ clear all;
 clc;
 
 % octave packages
-%pkg load signal;
+pkg load signal;
 
 % add library path
 addpath('./ignore/Supporting Code Package/');
@@ -16,38 +16,34 @@ addpath('./ignore/Supporting Code Package/');
 % load data
 load('eeg_data.mat')
 
+% number of channels
+n_ch = 16
+
 % concatenate runs
 
+
 % reshape eeg to 1 x 16 x numSamples
-eeg_data.flat = squeeze(reshape(eeg, 1, 16, []));
+eeg_data.flat = permute(eeg, [2 1 3]);
+eeg_data.flat = squeeze(reshape(eeg_data.flat, 1, []));
+eeg_data.flat = reshape(eeg_data.flat, [], n_ch)';
 
-% check it
-N = 1024
-k = 1
+eeg_flat_size = size(eeg_data.flat)
 
-block_size = 4
-block_len = N / block_size
 
-test_signal = sin(2 * pi * k / N * [1:N]);
+% some ffts, but its only crap
+%N = 512;
+%ff = fft(eeg_data.flat(1, 1:N));
+%ff = fft(eeg(1, 1, 1:N));
+%Y = 20 * log10( 2 / N * abs(ff(1:N/2)));
 
-b_signal = zeros(block_size, block_len);
+%figure(1)
+%plot(Y)
 
-for n = 1 : block_size
-  n
-  b_signal(n, :) = test_signal((n-1) * block_len + 1 : n * block_len);
-end
 
-b_signal = cat(3, b_signal, b_signal);
-b_signal = cat(3, b_signal, b_signal);
-b_signal = cat(3, b_signal, b_signal);
 
-r_signal = squeeze(reshape(b_signal, 1, [], 8));
+% how this crazy thing was reshaped
+%eeg_reshape();
 
-size(b_signal)
-size(r_signal)
-
-figure(1)
-plot(r_signal(:, 2))
 
 
 
