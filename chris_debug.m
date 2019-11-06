@@ -6,7 +6,7 @@ clear all;
 clc;
 
 % octave packages
-pkg load signal;
+%pkg load signal;
 
 % add library path
 addpath('./ignore/Supporting Code Package/');
@@ -21,6 +21,34 @@ load('eeg_data.mat')
 % reshape eeg to 1 x 16 x numSamples
 eeg_data.flat = squeeze(reshape(eeg, 1, 16, []));
 
+% check it
+N = 1024
+k = 1
+
+block_size = 4
+block_len = N / block_size
+
+test_signal = sin(2 * pi * k / N * [1:N]);
+
+b_signal = zeros(block_size, block_len);
+
+for n = 1 : block_size
+  n
+  b_signal(n, :) = test_signal((n-1) * block_len + 1 : n * block_len);
+end
+
+b_signal = cat(3, b_signal, b_signal);
+b_signal = cat(3, b_signal, b_signal);
+b_signal = cat(3, b_signal, b_signal);
+
+r_signal = squeeze(reshape(b_signal, 1, [], 8));
+
+size(b_signal)
+size(r_signal)
+
+figure(1)
+plot(r_signal(:, 2))
+
 
 
 % -- 
@@ -34,9 +62,9 @@ eeg_data.flat = squeeze(reshape(eeg, 1, 16, []));
 % resample EEG (optional)
 params.resample_factor = 2;
 
-eeg_data.rs = zeros(size(eeg_data.flat)(1), size(eeg_data.flat)(2) / 2);
+eeg_data.rs = zeros(size(eeg_data.flat, 1), size(eeg_data.flat, 2) / 2);
 
-for ch = 1 : size(eeg_data.flat)(1)
+for ch = 1 : size(eeg_data.flat, 1)
   eeg_data.rs(ch, :) = resample(eeg_data.flat(ch, :), 1, params.resample_factor);
 end
 
