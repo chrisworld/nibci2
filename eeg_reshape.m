@@ -5,7 +5,7 @@ function equal = eeg_reshape()
   N = 10;
   k = 1;
 
-  disp("---eeg-reshape")
+  disp('---eeg-reshape')
   block_size = 4;
   block_len = 4 * N / block_size;
 
@@ -20,21 +20,29 @@ function equal = eeg_reshape()
   for n = 1 : block_size
     b_signal(n, :) = test_signal((n-1) * block_len + 1 : n * block_len);
   end
+  % [block, time, ch]
   b_s1 = size(b_signal);
+  
+  b_signal = permute(cat(3, b_signal, b_signal), [1 3 2]);
+  % [block, ch, time]
+  
+  r2 = reshape(permute(b_signal, [3 1 2]), 2, []);
+  
+  b_s2 = size(b_signal)
 
-  b_signal = cat(3, b_signal, b_signal);
-  b_s2 = size(b_signal);
+  b_signal = permute(b_signal, [3 1 2]);
+  b_s3 = size(b_signal)
+  
+  %r2 = reshape(permute(b_signal, [2 1 3]), 2, []);
 
-  b_signal = permute(b_signal, [2 1 3]);
-  b_s3 = size(b_signal);
-
-  r_signal = squeeze(reshape(b_signal, 1, []));
+  r_signal = squeeze(reshape(b_signal, 2, []));
   r_s = size(r_signal);
 
   r_signal = reshape(r_signal, [], 2)';
 
   equal = isequal(r_signal(1, :), test_signal)
 
+  
 
   % plot test and restored function
   %figure(14)

@@ -6,7 +6,7 @@ clear all;
 clc;
 
 % octave packages
-pkg load signal;
+%pkg load signal;
 
 % add library path
 addpath('./ignore/Supporting Code Package/');
@@ -14,30 +14,26 @@ addpath('./ignore/Supporting Code Package/');
 
 % --
 % load data
-load('eeg_data.mat')
+load('EEGData.mat')
 
 % number of channels
 n_ch = 16
 
 % concatenate runs
 
+% eeg format
+% [block, ch, time]
+
+% add times and Marker to struct
+eeg_data.time = Marker.Time;
+eeg_data.marker = Marker.Data;
 
 % reshape eeg to 1 x 16 x numSamples
-eeg_data.flat = permute(eeg, [2 1 3]);
-eeg_data.flat = squeeze(reshape(eeg_data.flat, 1, []));
-eeg_data.flat = reshape(eeg_data.flat, [], n_ch)';
-
+eeg_data.flat = reshape(permute(eeg.Data, [2 1 3]), n_ch, []);
 eeg_flat_size = size(eeg_data.flat)
 
 
-% some ffts, but its only crap
-%N = 512;
-%ff = fft(eeg_data.flat(1, 1:N));
-%ff = fft(eeg(1, 1, 1:N));
-%Y = 20 * log10( 2 / N * abs(ff(1:N/2)));
 
-%figure(1)
-%plot(Y)
 
 
 
@@ -86,9 +82,29 @@ eeg_data.pre = filter(b, a, eeg_data.rs);
 %eeg_data.pre = filter(b, a, eeg_data.pre);
 
 
+% some dft
+N = 256;
+ff = fft(eeg_data.pre(1, 1:2*N));
+Y = 20 * log10( 2 / N * abs(ff(1:N)));
+
+%figure(1)
+%plot(Y)
+
+% frequency vector
+f = linspace(0, BCI.SampleRate / 2 / params.resample_factor, N);
+psd = abs(ff(1:N)) .^ 2;
+
+%figure(2)
+%plot(f, psd)
+
+
 
 % --
 % spatial filtering (optional)
+
+eeg_data.filt = laplace_filter(eeg_data.pre);
+
+size(eeg_data.filt)
 
 
 
