@@ -10,6 +10,7 @@ clc;
 
 % add library path
 addpath('./ignore/Supporting Code Package/');
+addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection');
 
 
 % --
@@ -30,7 +31,7 @@ eeg_data.marker = Marker.Data;
 
 % reshape eeg to 1 x 16 x numSamples
 eeg_data.flat = reshape(permute(eeg.Data, [2 1 3]), n_ch, []);
-eeg_flat_size = size(eeg_data.flat)
+eeg_flat_size = size(eeg_data.flat);
 
 
 
@@ -52,46 +53,55 @@ eeg_flat_size = size(eeg_data.flat)
 
 % -- 
 % resample EEG (optional)
-params.resample_factor = 2;
+params.rs_factor = 2;
 
 eeg_data.rs = zeros(size(eeg_data.flat, 1), size(eeg_data.flat, 2) / 2);
 
 for ch = 1 : size(eeg_data.flat, 1)
-  eeg_data.rs(ch, :) = resample(eeg_data.flat(ch, :), 1, params.resample_factor);
+  eeg_data.rs(ch, :) = resample(eeg_data.flat(ch, :), 1, params.rs_factor);
 end
 
+% recalculate time for resample
+eeg_data.time_rs = eeg_data.time(1:params.rs_factor:end);
+
+eeg_rs_size = size(eeg_data.rs);
 
 
 % -- 
 % prefilter ing
 
 % band pass
-params.filter_order = 4;
-params.f_window_pre = [1, 60];
+params.bp_order = 4;
+params.bp_f_win_pre = [1, 60];
 
 % get filter coeffs
-[b, a] = butter(params.filter_order, params.f_window_pre / (BCI.SampleRate / 2));
+[b, a] = butter(params.bp_order, params.bp_f_win_pre / (BCI.SampleRate / 2));
+params.bp_coeffs = [b; a];
 
 % apply filter
 eeg_data.pre = filter(b, a, eeg_data.rs);
 
 % notch filter at 50Hz
-%[b, a] = iirnotch(50 / (BCI.SampleRate / 2))
+params.notch_Wo = 50 / (BCI.SampleRate / 2);
+params.notch_Q = 45;
+[b, a] = iirnotch(params.notch_Wo, params.notch_Wo / params.notch_Q);
+params.notch_coeffs = [b; a];
+%freqz(b, a)
 
 % apply filter
-%eeg_data.pre = filter(b, a, eeg_data.pre);
+eeg_data.pre = filter(b, a, eeg_data.pre);
 
 
 % some dft
-N = 256;
-ff = fft(eeg_data.pre(1, 1:2*N));
-Y = 20 * log10( 2 / N * abs(ff(1:N)));
+N = 512;
+ff = fft(eeg_data.pre(1, 1:N));
+Y = 20 * log10( 2 / N * abs(ff(1:N/2)));
 
 %figure(1)
 %plot(Y)
 
 % frequency vector
-f = linspace(0, BCI.SampleRate / 2 / params.resample_factor, N);
+f = linspace(0, BCI.SampleRate / 2 / params.rs_factor, N);
 psd = abs(ff(1:N)) .^ 2;
 
 %figure(2)
@@ -102,16 +112,18 @@ psd = abs(ff(1:N)) .^ 2;
 % --
 % spatial filtering (optional)
 
-eeg_data.filt = laplace_filter(eeg_data.pre);
+eeg_data.spat = laplace_filter(eeg_data.pre);
 
-size(eeg_data.filt)
+eeg_spatial_size = size(eeg_data.spat)
 
 
 
 % -- 
 % epoch trials according to conditions
 
+
 % trigg
+
 
 
 
