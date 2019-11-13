@@ -55,16 +55,8 @@ eeg_flat_size = size(eeg_data.flat);
 % resample EEG (optional)
 params.rs_factor = 2;
 
-eeg_data.rs = zeros(size(eeg_data.flat, 1), size(eeg_data.flat, 2) / 2);
+[eeg_data.rs, eeg_data.time_rs, eeg_data.marker_rs] = resample_eeg(eeg_data, params);
 
-for ch = 1 : size(eeg_data.flat, 1)
-  eeg_data.rs(ch, :) = resample(eeg_data.flat(ch, :), 1, params.rs_factor);
-end
-
-% recalculate time for resample
-eeg_data.time_rs = eeg_data.time(1:params.rs_factor:end);
-
-eeg_rs_size = size(eeg_data.rs);
 
 
 % -- 
@@ -93,7 +85,7 @@ eeg_data.pre = filter(b, a, eeg_data.pre);
 
 
 % some dft
-N = 512;
+N = 256;
 ff = fft(eeg_data.pre(1, 1:N));
 Y = 20 * log10( 2 / N * abs(ff(1:N/2)));
 
@@ -130,7 +122,30 @@ eeg_spatial_size = size(eeg_data.spat)
 % -- 
 % calculate PSD
 
+% test pwelch
+
 % PSD for each epoch
+% k = 256;
+% N = 1024;
+% fs = 128;
+
+% test_signal = cos(2*pi*k / N * [1:4*N]);
+
+% psd = pwelch(test_signal, N, N/2, N, fs);
+
+%figure
+%plot(psd)
+%size(psd)
+
+
+params.N = 256;
+params.nfft = 512;
+
+[psd, f] = pwelch(eeg_data.spat(1, :), params.N, params.N / 2, params.nfft, BCI.SampleRate/2);
+
+figure
+plot(f, psd)
+size(psd)
 
 % Average epochs for condition
 
