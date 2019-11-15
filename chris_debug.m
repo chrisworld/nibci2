@@ -11,11 +11,11 @@ clc;
 % add library path
 addpath('./ignore/Supporting Code Package/');
 addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection');
-
+addpath('./ignore/Supporting Code Package/eegplot_cp')
 
 % --
 % load data
-load('EEGData.mat')
+load('eeg_data.mat')
 
 % number of channels
 n_ch = 16
@@ -30,16 +30,8 @@ eeg_data.time = Marker.Time;
 eeg_data.marker = Marker.Data;
 
 % reshape eeg to 1 x 16 x numSamples
-eeg_data.flat = reshape(permute(eeg.Data, [2 1 3]), n_ch, []);
-eeg_flat_size = size(eeg_data.flat);
-
-
-
-
-
-
-% how this crazy thing was reshaped
-%eeg_reshape();
+eeg_data.flat = reshape(permute(eeg, [2 1 3]), n_ch, []);
+%eeg_flat_size = size(eeg_data.flat);
 
 
 
@@ -53,51 +45,55 @@ eeg_flat_size = size(eeg_data.flat);
 
 % -- 
 % resample EEG (optional)
+
+% resample factor
 params.rs_factor = 2;
 
+% resample
 [eeg_data.rs, eeg_data.time_rs, eeg_data.marker_rs] = resample_eeg(eeg_data, params);
 
 
 
 % -- 
-% prefilter ing
+% prefiltering
 
 % band pass
 params.bp_order = 4;
 params.bp_f_win_pre = [1, 60];
 
-% get filter coeffs
-[b, a] = butter(params.bp_order, params.bp_f_win_pre / (BCI.SampleRate / 2));
-params.bp_coeffs = [b; a];
+% get filter coeffs of bandpass filter
+[params.b_bp, params.a_bp] = butter(params.bp_order, params.bp_f_win_pre / (BCI.SampleRate / 2));
 
 % apply filter
-eeg_data.pre = filter(b, a, eeg_data.rs);
+eeg_data.pre = filter(params.b_bp, params.a_bp, eeg_data.rs);
 
-% notch filter at 50Hz
+% notch filter parameters
 params.notch_Wo = 50 / (BCI.SampleRate / 2);
 params.notch_Q = 45;
-[b, a] = iirnotch(params.notch_Wo, params.notch_Wo / params.notch_Q);
-params.notch_coeffs = [b; a];
+
+% get filter coeffs of notch filter
+[params.b_notch, params.a_notch] = iirnotch(params.notch_Wo, params.notch_Wo / params.notch_Q);
 %freqz(b, a)
 
 % apply filter
-eeg_data.pre = filter(b, a, eeg_data.pre);
+eeg_data.pre = filter(params.b_notch, params.a_notch, eeg_data.pre);
 
 
 % some dft
-N = 256;
-ff = fft(eeg_data.pre(1, 1:N));
-Y = 20 * log10( 2 / N * abs(ff(1:N/2)));
+%N = 256;
+%ff = fft(eeg_data.pre(1, 1:N));
+%Y = 20 * log10( 2 / N * abs(ff(1:N/2)));
 
 %figure(1)
 %plot(Y)
 
 % frequency vector
-f = linspace(0, BCI.SampleRate / 2 / params.rs_factor, N);
-psd = abs(ff(1:N)) .^ 2;
+%f = linspace(0, BCI.SampleRate / 2 / params.rs_factor, N);
+%psd = abs(ff(1:N)) .^ 2;
 
 %figure(2)
 %plot(f, psd)
+%clear N ff Y f psd)
 
 
 
@@ -105,16 +101,20 @@ psd = abs(ff(1:N)) .^ 2;
 % spatial filtering (optional)
 
 eeg_data.spat = laplace_filter(eeg_data.pre);
+%eeg_spatial_size = size(eeg_data.spat)
 
-eeg_spatial_size = size(eeg_data.spat)
+
+% --
+% plot whole eeg
+%eegplot_cp(eeg_data.spat, 125, 64, 10, ['C3'; 'Cz'; 'C4'], eeg_data.marker_rs)
 
 
 
 % -- 
 % epoch trials according to conditions
 
-
-% trigg
+% get region of interest -> reference and cue samples
+[eeg_roi.ref, eeg_roi.cue] = get_eeg_roi(eeg_data, params, BCI);
 
 
 
@@ -141,11 +141,13 @@ eeg_spatial_size = size(eeg_data.spat)
 params.N = 256;
 params.nfft = 512;
 
-[psd, f] = pwelch(eeg_data.spat(1, :), params.N, params.N / 2, params.nfft, BCI.SampleRate/2);
+[psd, f] = pwelch(eeg_data.spat(1, :), hanning(params.N), params.N / 2, params.nfft, BCI.SampleRate/2);
 
-figure
-plot(f, psd)
-size(psd)
+clear psd f;
+
+%figure
+%plot(f, psd)
+%size(psd)
 
 % Average epochs for condition
 
