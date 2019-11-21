@@ -12,6 +12,7 @@ clc;
 addpath('./ignore/Supporting Code Package/');
 addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection');
 addpath('./ignore/Supporting Code Package/eegplot_cp')
+addpath('./ignore/eeglab2019_0/')
 
 % --
 % load data
@@ -159,3 +160,8 @@ clear psd f;
 %t = [-3, 0, 5];
 %f_borders = [4, 30];
 %t_ref = [-2.5, -0.5];
+
+% --
+% start eeg lab
+eeg_final = eeg_data.spat;
+eeglab;
