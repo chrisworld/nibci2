@@ -107,7 +107,7 @@ eeg_data.spat = laplace_filter(eeg_data.pre);
 
 % --
 % plot whole eeg
-%eegplot_cp(eeg_data.spat, 125, 64, 10, ['C3'; 'Cz'; 'C4'], eeg_data.marker_rs)
+%eegplot_cp(eeg_data.spat, 125, 64, 10, {'C3', 'Cz', 'C4'}, eeg_data.marker_rs)
 
 
 
@@ -115,7 +115,7 @@ eeg_data.spat = laplace_filter(eeg_data.pre);
 % epoch trials according to conditions
 
 % get region of interest -> reference and cue samples
-[eeg_roi.ref, eeg_roi.cue] = get_eeg_roi(eeg_data, params, BCI);
+[eeg_roi.ref, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data, params, BCI);
 
 
 
@@ -138,7 +138,6 @@ eeg_data.spat = laplace_filter(eeg_data.pre);
 %plot(psd)
 %size(psd)
 
-
 params.N = 256;
 params.nfft = 512;
 
@@ -157,11 +156,63 @@ clear psd f;
 
 
 % erds map params
-%t = [-3, 0, 5];
-%f_borders = [4, 30];
-%t_ref = [-2.5, -0.5];
+erds_params.t = [-3, 0, 5];
+erds_params.f_bord = [4, 30];
+erds_params.t_ref = [-2.5, -0.5];
+
+% header train
+header_train.SampleRate = BCI.SampleRate / params.rs_factor;
+
+% trigger for the cue sample index -> 4
+header_train.TRIG = marker_info.pos(4);
+
+% class labels for training
+%header_train.Classlabel = 
+
+% calculate erds maps
+%erds_maps.c1 = calcErdsMap(sGes_train(:, 3), hGes_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
+%erds_maps.c2 = calcErdsMap(sGes_train(:, 3), hGes_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
+
+%save('erds_maps.mat', 'erds_maps_c1', 'erds_maps_c2');
+
+
+% load pre calculated erds_maps
+%load('erds_maps.mat')
+
+% plot erds maps
+%plotErdsMap(erds_maps.c1);
+%plotErdsMap(erds_maps.c2);
+
+
 
 % --
-% start eeg lab
-eeg_final = eeg_data.spat;
-eeglab;
+% Analyze eeg data
+
+%eeg_final = eeg_data.spat;
+%eeglab;
+
+%pop_eegplot()
+
+%eegplot_cp(signal, 125 , fs, 10,labels, marker) 
+
+% plot eeg
+%eegplot_cp(eeg_data.spat, 128, 64, 10, {'C3', 'Cz', 'C4'}, eeg_data.marker_rs)
+
+
+% my update plot function test
+% fig = figure(100);
+
+% x = [0 : 10];
+% t = [0 : 10];
+
+% fs = 64;
+
+% % plot update
+% for u = 1 : 3
+%   t = [u * 10 : (u+1) * 10]
+%   eeg_plot_update(fig, x, t, fs);
+% end
+
+
+
+

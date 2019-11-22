@@ -1,4 +1,4 @@
-function [ref, cue] = get_eeg_roi(eeg_data, params, BCI)
+function [ref, cue, trial, marker_info] = get_eeg_roi(eeg_data, params, BCI)
   % get_eeg_roi(eeg_data, params, BCI)
   % gets the region of interest for eeg classification
   % returns the reference and cue samples
@@ -10,60 +10,36 @@ function [ref, cue] = get_eeg_roi(eeg_data, params, BCI)
   %   5 break
   %   6 end run
 
+  % marker functions
+  marker_info.func = {'init', 'ref', 'acoustic', 'cue', 'break', 'end_run'};
+
+  % aount of trials -> check cues
+  n_trials = length(find(eeg_data.marker_rs == 4));
+
+  % marker positions [trials]
+  marker_info.pos = zeros(length(marker_info.func), n_trials);
+
   % analyse marker
   for m = 1 : length(unique(eeg_data.marker_rs)) - 1
 
-    switch m
+    % print function of marker
+    %disp(marker_info.func(m))
 
-      % init
-      case 1
-        disp('init')
-        marker_pos.ini = find(eeg_data.marker_rs == m);
-        time_marker.ini = (marker_pos.ini - 1) / (BCI.SampleRate / params.rs_factor);
-
-      % reference
-      case 2
-        disp('ref')
-        marker_pos.ref = find(eeg_data.marker_rs == m);
-        time_marker.ref = (marker_pos.ref - 1) / (BCI.SampleRate / params.rs_factor);
-        
-      % acoustic
-      case 3
-        disp('acoustic')
-        marker_pos.ac = find(eeg_data.marker_rs == m);
-        time_marker.ac = (marker_pos.ac - 1) / (BCI.SampleRate / params.rs_factor);
-
-      % cue
-      case 4
-        disp('cue')
-        marker_pos.cue = find(eeg_data.marker_rs == m);
-        time_marker.cue = (marker_pos.cue - 1) / (BCI.SampleRate / params.rs_factor);
-        
-      % break
-      case 5
-        disp('break')
-        marker_pos.break = find(eeg_data.marker_rs == m);
-        time_marker.break = (marker_pos.break - 1) / (BCI.SampleRate / params.rs_factor);
-
-      % end run
-      case 6
-        disp('end run')
-        marker_pos.end = find(eeg_data.marker_rs == m);
-        time_marker.end = (marker_pos.end - 1) / (BCI.SampleRate / params.rs_factor);
-
-      otherwise
-        disp('other value')
-    end
+    % find sample positions of marker
+    marker_info.pos(m, :) = find(eeg_data.marker_rs == m);
 
   end
 
   % calculate sample length
-  ref_samples =  marker_pos.ac - marker_pos.ref;
-  cue_samples =  marker_pos.break - marker_pos.cue;
+  ref_samples =  marker_info.pos(3) - marker_info.pos(2);
+  cue_samples =  marker_info.pos(5) - marker_info.pos(4);
+  trial_samples =  marker_info.pos(5) - marker_info.pos(2);
 
   % get region of interest
-  [eeg_roi_ref_flat, ref_sz] = trigg(eeg_data.spat', marker_pos.ref, 0, ref_samples(1), 0);
-  [eeg_roi_cue_flat, cue_sz] = trigg(eeg_data.spat', marker_pos.cue, 0, cue_samples(1), 0);
+  [eeg_roi_ref_flat, ref_sz] = trigg(eeg_data.spat', marker_info.pos(2), 0, ref_samples(1), 0);
+  [eeg_roi_cue_flat, cue_sz] = trigg(eeg_data.spat', marker_info.pos(4), 0, cue_samples(1), 0);
+  [eeg_roi_trial_flat, trial_sz] = trigg(eeg_data.spat', marker_info.pos(2), 0, trial_samples(1), 0);
 
   ref = reshape(eeg_roi_ref_flat, ref_sz);
   cue = reshape(eeg_roi_cue_flat, cue_sz);
+  trial = reshape(eeg_roi_trial_flat, trial_sz);
