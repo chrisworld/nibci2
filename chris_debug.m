@@ -14,6 +14,9 @@ addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection')
 addpath('./ignore/Supporting Code Package/eegplot_cp')
 addpath('./ignore/eeglab2019_0/')
 
+% erds maps
+addpath('./ignore/biosig/biosig/t310_ERDSMaps')
+
 % --
 % load data
 load('eeg_data.mat')
@@ -102,22 +105,15 @@ eeg_data.pre = filter(params.b_notch, params.a_notch, eeg_data.pre);
 % spatial filtering (optional)
 
 eeg_data.spat = laplace_filter(eeg_data.pre);
+
+% debug stuff
+%eeg_data.spat = eeg_data.spat(1:2, :)
 %eeg_spatial_size = size(eeg_data.spat)
 
 
 % --
 % plot whole eeg
 %eegplot_cp(eeg_data.spat, 125, 64, 10, {'C3', 'Cz', 'C4'}, eeg_data.marker_rs)
-
-
-
-% -- 
-% epoch trials according to conditions
-
-% get region of interest -> reference and cue samples
-[eeg_roi.ref, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data, params, BCI);
-
-
 
 
 % -- 
@@ -143,35 +139,60 @@ params.nfft = 512;
 
 [psd, f] = pwelch(eeg_data.spat(1, :), hanning(params.N), params.N / 2, params.nfft, BCI.SampleRate/2);
 
-clear psd f;
-
 %figure
 %plot(f, psd)
 %size(psd)
 
-% Average epochs for condition
+clear psd f;
+size_spat = size(eeg_data.spat)
 
-% pwelch
-% in dB
+
+% -- 
+% epoch trials according to conditions
+
+% get region of interest -> reference and cue samples
+[eeg_roi.ref, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data, params, BCI);
+
+size_trial = size(eeg_roi.trial)
 
 
 % erds map params
-erds_params.t = [-3, 0, 5];
+erds_params.t = [-(marker_info.ref_samples(1) + marker_info.ac_samples(1) - 1) / (BCI.SampleRate / params.rs_factor), 0, marker_info.cue_samples(1) / (BCI.SampleRate / params.rs_factor)];
 erds_params.f_bord = [4, 30];
-erds_params.t_ref = [-2.5, -0.5];
+erds_params.t_ref = [-(marker_info.ref_samples(1)  + marker_info.ac_samples(1) - 1) / (BCI.SampleRate / params.rs_factor), -marker_info.ac_samples(1) / (BCI.SampleRate / params.rs_factor)]
 
 % header train
 header_train.SampleRate = BCI.SampleRate / params.rs_factor;
 
 % trigger for the cue sample index -> 4
-header_train.TRIG = marker_info.pos(4);
+header_train.TRIG = marker_info.trial_cue_pos;
 
 % class labels for training
-%header_train.Classlabel = 
+header_train.Classlabel = BCI.classlabels
+
+% [ch, samples, trials]
+%sz = size(eeg_roi.trial)
+
+% [samples, ch, trials]
+%data = permute(eeg_roi.trial, [2, 1, 3]);
+data = permute(eeg_data.spat, [2, 1]);
+
+data_sz = size(data)
+
+% load data and save as variables
+%load('./ignore/test_data/sGes.mat')
+%load('./ignore/test_data/hGes.mat')
+%fs = hGes.SampleRate;
+%sGes_train = sGes;
+%hGes_train = hGes;
+%size(sGes_train)
 
 % calculate erds maps
-%erds_maps.c1 = calcErdsMap(sGes_train(:, 3), hGes_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
+erds_maps.c1 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
+
 %erds_maps.c2 = calcErdsMap(sGes_train(:, 3), hGes_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
+
+%erds_maps.c2 = calcErdsMap(sGes_train(:, 3), header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
 
 %save('erds_maps.mat', 'erds_maps_c1', 'erds_maps_c2');
 
@@ -180,7 +201,8 @@ header_train.TRIG = marker_info.pos(4);
 %load('erds_maps.mat')
 
 % plot erds maps
-%plotErdsMap(erds_maps.c1);
+plotErdsMap(erds_maps.c1);
+
 %plotErdsMap(erds_maps.c2);
 
 

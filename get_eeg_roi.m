@@ -31,15 +31,21 @@ function [ref, cue, trial, marker_info] = get_eeg_roi(eeg_data, params, BCI)
   end
 
   % calculate sample length
-  ref_samples =  marker_info.pos(3) - marker_info.pos(2);
-  cue_samples =  marker_info.pos(5) - marker_info.pos(4);
-  trial_samples =  marker_info.pos(5) - marker_info.pos(2);
+  marker_info.ref_samples =  marker_info.pos(3, :) - marker_info.pos(2, :);
+  marker_info.ac_samples =  marker_info.pos(4, :) - marker_info.pos(3, :);
+  marker_info.cue_samples =  marker_info.pos(5, :) - marker_info.pos(4, :);
+  marker_info.trial_samples =  marker_info.pos(5, :) - marker_info.pos(2, :);
 
+  %eeg_spat: [ch, samples]
+  % output: [ch, trial, samples]
   % get region of interest
-  [eeg_roi_ref_flat, ref_sz] = trigg(eeg_data.spat', marker_info.pos(2), 0, ref_samples(1), 0);
-  [eeg_roi_cue_flat, cue_sz] = trigg(eeg_data.spat', marker_info.pos(4), 0, cue_samples(1), 0);
-  [eeg_roi_trial_flat, trial_sz] = trigg(eeg_data.spat', marker_info.pos(2), 0, trial_samples(1), 0);
+  [eeg_roi_ref_flat, ref_sz] = trigg(eeg_data.spat', marker_info.pos(2, :), 0, marker_info.ref_samples(1), 0);
+  [eeg_roi_cue_flat, cue_sz] = trigg(eeg_data.spat', marker_info.pos(4, :), 0, marker_info.cue_samples(1), 0);
+  [eeg_roi_trial_flat, trial_sz] = trigg(eeg_data.spat', marker_info.pos(2, :), 0, marker_info.trial_samples(1), 0);
 
   ref = reshape(eeg_roi_ref_flat, ref_sz);
   cue = reshape(eeg_roi_cue_flat, cue_sz);
   trial = reshape(eeg_roi_trial_flat, trial_sz);
+
+  % trial cue marker
+  marker_info.trial_cue_pos = marker_info.pos(4, :)
