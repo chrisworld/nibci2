@@ -49,10 +49,45 @@ eeg_data.pre = filter(params.b_notch, params.a_notch, eeg_data.pre);
 
 eeg_data.spat = laplace_filter(eeg_data.pre);
 
+%% ------------------------------------------------------------------------
+% psd with pwelch
 
 params.N = 256;
 params.nfft = 512;
 
 [psd, f] = pwelch(eeg_data.spat(1, :), hanning(params.N), params.N / 2, params.nfft, BCI.SampleRate/2);
 
-plot(f, psd, 'Parent', handles.psd);
+%plot(f, psd, 'Parent', handles.psd);
+plot(f, psd);
+
+
+%% ------------------------------------------------------------------------
+% erds map
+
+% get region of interest -> reference and cue samples
+[eeg_roi.ref, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data, params, BCI);
+
+% erds map params
+erds_params.t = [-(marker_info.ref_samples(1) + marker_info.ac_samples(1) - 1) / (BCI.SampleRate / params.rs_factor), 0, marker_info.cue_samples(1) / (BCI.SampleRate / params.rs_factor)];
+erds_params.f_bord = [4, 30];
+erds_params.t_ref = [-(marker_info.ref_samples(1)  + marker_info.ac_samples(1) - 1) / (BCI.SampleRate / params.rs_factor), -marker_info.ac_samples(1) / (BCI.SampleRate / params.rs_factor)]
+
+% header train
+header_train.SampleRate = BCI.SampleRate / params.rs_factor;
+
+% trigger for the cue
+header_train.TRIG = marker_info.trial_cue_pos;
+
+% class labels for training
+header_train.Classlabel = transpose(BCI.classlabels)
+
+% permute to get [samples, ch]
+data = permute(eeg_data.spat, [2, 1]);
+
+% calculate erds maps
+erds_maps.c1 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
+erds_maps.c2 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
+
+% plot erds maps
+plotErdsMap(erds_maps.c1);
+plotErdsMap(erds_maps.c2);

@@ -19,7 +19,7 @@ addpath('./ignore/biosig/biosig/t310_ERDSMaps')
 
 % --
 % load data
-load('eeg_data.mat')
+load('eeg_data10.mat')
 
 % number of channels
 n_ch = 16
@@ -168,31 +168,27 @@ header_train.SampleRate = BCI.SampleRate / params.rs_factor;
 header_train.TRIG = marker_info.trial_cue_pos;
 
 % class labels for training
-header_train.Classlabel = BCI.classlabels
+header_train.Classlabel = transpose(BCI.classlabels)
 
-% [ch, samples, trials]
-%sz = size(eeg_roi.trial)
-
-% [samples, ch, trials]
-%data = permute(eeg_roi.trial, [2, 1, 3]);
+% permute to get [samples, ch]
 data = permute(eeg_data.spat, [2, 1]);
 
 data_sz = size(data)
 
 % load data and save as variables
-%load('./ignore/test_data/sGes.mat')
-%load('./ignore/test_data/hGes.mat')
-%fs = hGes.SampleRate;
-%sGes_train = sGes;
-%hGes_train = hGes;
-%size(sGes_train)
+load('./ignore/test_data/sGes.mat')
+load('./ignore/test_data/hGes.mat')
+sGes_train = sGes;
+hGes_train = hGes
+size(sGes_train)
 
 % calculate erds maps
-erds_maps.c1 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
+%erds_maps.c1 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
+erds_maps.c1 = calcErdsMap(sGes_train(:, 3), header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
 
-%erds_maps.c2 = calcErdsMap(sGes_train(:, 3), hGes_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
+%erds_maps.c1 = calcErdsMap(sGes_train(:, 3), hGes_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
 
-%erds_maps.c2 = calcErdsMap(sGes_train(:, 3), header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
+%erds_maps.c1 = calcErdsMap(sGes_train(:, 3), header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
 
 %save('erds_maps.mat', 'erds_maps_c1', 'erds_maps_c2');
 
@@ -238,3 +234,4 @@ plotErdsMap(erds_maps.c1);
 
 
 
+    
