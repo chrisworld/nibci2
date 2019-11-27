@@ -2,8 +2,11 @@
 
 global handles;
 global BCI;
-n_ch = size(eeg.Data,2);
-eeg_ = eeg.Data;
+
+%eeg_ = eeg.Data;
+eeg_ = eeg;
+
+n_ch = size(eeg_,2);
 
 
 eeg_data.time = Marker.Time;
@@ -50,27 +53,61 @@ eeg_data.pre = filter(params.b_notch, params.a_notch, eeg_data.pre);
 eeg_data.spat = laplace_filter(eeg_data.pre);
 
 %% ------------------------------------------------------------------------
-% psd with pwelch
+% get region of interest -> reference and cue samples
+[eeg_roi.ref, eeg_roi.ac, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data, params, BCI);
 
-params.N = 256;
+%% ------------------------------------------------------------------------
+% psd
+
+% psd params
+params.N = 64;
 params.nfft = 512;
 
-[psd, f] = pwelch(eeg_data.spat(1, :), hanning(params.N), params.N / 2, params.nfft, BCI.SampleRate/2);
+% channels
+ch_selection = {'C3', 'Cz', 'C4'};
 
+for ch = 1:length(ch_selection)
+  
+  % ordering [ch, samples, trials]
+  eeg_c1 = squeeze(permute(eeg_roi.cue(ch, :, transpose(BCI.classlabels == 1)), [1, 3, 2]));
+  eeg_c2 = squeeze(permute(eeg_roi.cue(ch, :, transpose(BCI.classlabels == 2)), [1, 3, 2]));
+
+  % init place holder
+  psd_c1 = zeros(size(eeg_c1, 1), params.nfft/2 + 1);
+  psd_c2 = zeros(size(eeg_c1, 1), params.nfft/2 + 1);
+
+  % run all trials
+  for tr = 1 : size(eeg_c1, 1)
+    % calc psd
+    [psd_c1(tr, :), f] = pwelch(eeg_c1(tr, :), hanning(params.N), params.N / 2, params.nfft, BCI.SampleRate/2);
+    [psd_c2(tr, :), f] = pwelch(eeg_c2(tr, :), hanning(params.N), params.N / 2, params.nfft, BCI.SampleRate/2);
+  end
+
+  % make a psd plot
+  figure(10+ch)
+  hold on 
+  plot(f, mean(psd_c1, 1), '-b', 'LineWidth', 1.5)
+  plot(f, mean(psd_c2, 1), '-r', 'LineWidth', 1.5)
+  hold off
+  %ylim([-15 20])
+  title(ch_selection(ch))
+  ylabel('PSD')
+  xlabel('Time [s]')
+  grid()
+  legend('class 1', 'class 2')
+end
+
+% TODO: handle
 %plot(f, psd, 'Parent', handles.psd);
-plot(f, psd);
 
 
 %% ------------------------------------------------------------------------
 % erds map
 
-% get region of interest -> reference and cue samples
-[eeg_roi.ref, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data, params, BCI);
-
 % erds map params
 erds_params.t = [-(marker_info.ref_samples(1) + marker_info.ac_samples(1) - 1) / (BCI.SampleRate / params.rs_factor), 0, marker_info.cue_samples(1) / (BCI.SampleRate / params.rs_factor)];
 erds_params.f_bord = [4, 30];
-erds_params.t_ref = [-(marker_info.ref_samples(1)  + marker_info.ac_samples(1) - 1) / (BCI.SampleRate / params.rs_factor), -marker_info.ac_samples(1) / (BCI.SampleRate / params.rs_factor)]
+erds_params.t_ref = [-(marker_info.ref_samples(1)  + marker_info.ac_samples(1) - 1) / (BCI.SampleRate / params.rs_factor), -marker_info.ac_samples(1) / (BCI.SampleRate / params.rs_factor)];
 
 % header train
 header_train.SampleRate = BCI.SampleRate / params.rs_factor;
@@ -79,7 +116,7 @@ header_train.SampleRate = BCI.SampleRate / params.rs_factor;
 header_train.TRIG = marker_info.trial_cue_pos;
 
 % class labels for training
-header_train.Classlabel = transpose(BCI.classlabels)
+header_train.Classlabel = transpose(BCI.classlabels);
 
 % permute to get [samples, ch]
 data = permute(eeg_data.spat, [2, 1]);
@@ -91,3 +128,33 @@ erds_maps.c2 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord
 % plot erds maps
 plotErdsMap(erds_maps.c1);
 plotErdsMap(erds_maps.c2);
+
+
+%% ------------------------------------------------------------------------
+% ERP check at acoustic
+
+% mean
+erp.ac_mean = mean(eeg_roi.ac, 3);
+
+% std
+erp.ac_std = std(eeg_roi.ac, 0, 3);
+
+% time vector
+erp.t = 0 : params.rs_factor / BCI.SampleRate : size(eeg_roi.ac, 2) * params.rs_factor / BCI.SampleRate - params.rs_factor / BCI.SampleRate;
+
+% print erp 
+for ch = 1:length(ch_selection)
+
+  % plot
+  figure(20+ch)
+  hold on 
+  plot(erp.t, erp.ac_mean(ch,:), '-b', 'LineWidth', 1.5)
+  plot(erp.t, erp.ac_mean(ch,:) + erp.ac_std(ch,:), '--b')
+  plot(erp.t, erp.ac_mean(ch,:) - erp.ac_std(ch,:), '--b')
+  hold off
+  %ylim([-15 20])
+  title(ch_selection(ch))
+  ylabel('Volt [uV]')
+  xlabel('Time [s]')
+  legend('mean', 'mean + std', 'mean - std')
+end
