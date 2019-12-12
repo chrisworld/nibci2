@@ -1,8 +1,8 @@
 function l = laplace_filter(X)
 
   % C3a: FC3, C5, C1, CP3
-  C3_idx = 6;
-  Cz_idx = 9;
+  C3_idx = 8;
+  Cz_idx = 10;
   C4_idx = 12;
 
   l = zeros(3, length(X));

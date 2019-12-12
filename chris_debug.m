@@ -19,15 +19,21 @@ addpath('./ignore/biosig/biosig/t310_ERDSMaps')
 
 % --
 % load data
-load('eeg_data10.mat')
-eeg_ = eeg;
+%load('eeg_data10.mat')
+%load('./eeg_recordings/Trial120.mat')
+%eeg_ = eeg.Data;
 
 %load('eeg_data120.mat')
 %eeg_ = eeg.Data;
 
+load('./eeg_recordings/Trial120_eeg')
+eeg_ = eeg.Data;
+
 % number of channels
 n_ch = 16
 
+
+% --
 % concatenate runs
 
 % eeg format
@@ -42,13 +48,9 @@ eeg_data.flat = reshape(permute(eeg_, [2 1 3]), n_ch, []);
 %eeg_flat_size = size(eeg_data.flat);
 
 
-
-
 % -- 
 % exclude artifacts
-
-% simple thresholding
-
+% simple thresholding - not implemented
 
 
 % -- 
@@ -61,49 +63,14 @@ params.rs_factor = 2;
 [eeg_data.rs, eeg_data.time_rs, eeg_data.marker_rs] = resample_eeg(eeg_data, params);
 
 
-
 % -- 
 % prefiltering
-
-% band pass
-params.bp_order = 4;
-params.bp_f_win_pre = [1, 60];
-
-% get filter coeffs of bandpass filter
-[params.b_bp, params.a_bp] = butter(params.bp_order, params.bp_f_win_pre / (BCI.SampleRate / 2));
-
-% apply filter
-eeg_data.pre = filter(params.b_bp, params.a_bp, eeg_data.rs);
-
-% notch filter parameters
-params.notch_Wo = 50 / (BCI.SampleRate / 2);
-params.notch_Q = 45;
-
-% get filter coeffs of notch filter
-[params.b_notch, params.a_notch] = iirnotch(params.notch_Wo, params.notch_Wo / params.notch_Q);
-%freqz(b, a)
-
-% apply filter
-eeg_data.pre = filter(params.b_notch, params.a_notch, eeg_data.pre);
-
+[eeg_data, params] = pre_filter_eeg(eeg_data, params, BCI);
 
 
 % --
 % spatial filtering (optional)
-
 eeg_data.spat = laplace_filter(eeg_data.pre);
-
-% debug stuff
-%eeg_data.spat = eeg_data.spat(1:2, :)
-%eeg_spatial_size = size(eeg_data.spat)
-
-
-% --
-% plot whole eeg
-%eegplot_cp(eeg_data.spat, 125, 64, 10, {'C3', 'Cz', 'C4'}, eeg_data.marker_rs)
-
-
-
 
 
 % -- 
@@ -111,14 +78,6 @@ eeg_data.spat = laplace_filter(eeg_data.pre);
 
 % get region of interest -> reference and cue samples
 [eeg_roi.ref, eeg_roi.ac, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data, params, BCI);
-size_trial = size(eeg_roi.trial)
-
-% [ch, samples, trials]
-
-size(BCI.classlabels)
-size(eeg_roi.cue)
-
-%BCI.classlabels == 1
 
 
 % -- 
@@ -149,7 +108,7 @@ for ch = 1:length(ch_selection)
   end
 
   % make a psd plot
-  figure(1+ch)
+  figure(10+ch)
   hold on 
   plot(f, mean(psd_c1, 1), '-b', 'LineWidth', 1.5)
   plot(f, mean(psd_c2, 1), '-r', 'LineWidth', 1.5)
@@ -162,17 +121,11 @@ for ch = 1:length(ch_selection)
   legend('class 1', 'class 2')
   %print(['P300_std_' char(ch_selection(i))],'-dpng')
 end
-
-
-%figure
-%plot(f, psd)
-%size(psd)
-
 clear psd f;
-size_spat = size(eeg_data.spat)
 
 
-
+% --
+% ERDS maps
 
 % erds map params
 erds_params.t = [-(marker_info.ref_samples(1) + marker_info.ac_samples(1) - 1) / (BCI.SampleRate / params.rs_factor), 0, marker_info.cue_samples(1) / (BCI.SampleRate / params.rs_factor)];
@@ -191,23 +144,13 @@ header_train.Classlabel = transpose(BCI.classlabels)
 % permute to get [samples, ch]
 data = permute(eeg_data.spat, [2, 1]);
 
-data_sz = size(data)
-
-% load data and save as variables
-load('./ignore/test_data/sGes.mat')
-load('./ignore/test_data/hGes.mat')
-sGes_train = sGes;
-hGes_train = hGes
-size(sGes_train)
-
 % calculate erds maps
-%erds_maps.c1 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
-%erds_maps.c1 = calcErdsMap(sGes_train(:, 3), header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
-
+erds_maps.c1 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
+erds_maps.c2 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
 
 % plot erds maps
-%plotErdsMap(erds_maps.c1);
-
+plotErdsMap(erds_maps.c1);
+plotErdsMap(erds_maps.c2);
 
 
 % --
@@ -221,15 +164,13 @@ ac_size = size(ac_mean)
 % std
 ac_std = std(eeg_roi.ac, 0, 3);
 
-
-
 % time vector
 t = 0 : params.rs_factor / BCI.SampleRate : size(eeg_roi.ac, 2) * params.rs_factor / BCI.SampleRate - params.rs_factor / BCI.SampleRate;
 
 % print everything
 %%{
 for ch = 1:length(ch_selection)
-  figure(10+ch)
+  figure(20+ch)
   hold on 
   plot(t, ac_mean(ch,:), '-b', 'LineWidth', 1.5)
   plot(t, ac_mean(ch,:) + ac_std(ch,:), '--b')
@@ -244,33 +185,6 @@ for ch = 1:length(ch_selection)
 end
 %}
 
-
-
-
-%eeg_final = eeg_data.spat;
-%eeglab;
-
-%pop_eegplot()
-
-%eegplot_cp(signal, 125 , fs, 10,labels, marker) 
-
-% plot eeg
-%eegplot_cp(eeg_data.spat, 128, 64, 10, {'C3', 'Cz', 'C4'}, eeg_data.marker_rs)
-
-
-% my update plot function test
-% fig = figure(100);
-
-% x = [0 : 10];
-% t = [0 : 10];
-
-% fs = 64;
-
-% % plot update
-% for u = 1 : 3
-%   t = [u * 10 : (u+1) * 10]
-%   eeg_plot_update(fig, x, t, fs);
-% end
 
 
 

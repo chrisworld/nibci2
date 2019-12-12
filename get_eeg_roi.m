@@ -26,7 +26,7 @@ function [ref, ac, cue, trial, marker_info] = get_eeg_roi(eeg_data, params, BCI)
     %disp(marker_info.func(m))
 
     % find sample positions of marker
-    marker_info.pos(m, :) = find(eeg_data.marker_rs == m);
+    marker_info.pos(m, :) = find(eeg_data.marker_rs == m)';
 
   end
 
@@ -40,7 +40,7 @@ function [ref, ac, cue, trial, marker_info] = get_eeg_roi(eeg_data, params, BCI)
   % output: [ch, trial, samples]
   % get region of interest
   [eeg_roi_ref_flat, ref_sz] = trigg(eeg_data.spat', marker_info.pos(2, :), 0, marker_info.ref_samples(1), 0);
-  [eeg_roi_ac_flat, ac_sz] = trigg(eeg_data.spat', marker_info.pos(3, :), 0, marker_info.ac_samples(1), 0);
+  [eeg_roi_ac_flat, ac_sz] = trigg(eeg_data.spat', marker_info.pos(3, :), 0.5 * BCI.SampleRate / params.rs_factor , marker_info.ac_samples(1), 0.5 * BCI.SampleRate / params.rs_factor);
   [eeg_roi_cue_flat, cue_sz] = trigg(eeg_data.spat', marker_info.pos(4, :), 0, marker_info.cue_samples(1), 0);
   [eeg_roi_trial_flat, trial_sz] = trigg(eeg_data.spat', marker_info.pos(2, :), 0, marker_info.trial_samples(1), 0);
 
