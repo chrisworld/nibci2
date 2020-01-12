@@ -1,5 +1,5 @@
 % --
-% chris debug file
+% ass1 debug file
 
 close all;
 clear all;
@@ -16,6 +16,11 @@ addpath('./ignore/eeglab2019_0/')
 
 % erds maps
 addpath('./ignore/biosig/biosig/t310_ERDSMaps')
+
+% add internal paths
+addpath('./gui')
+addpath('./simu')
+addpath('./sp')
 
 % --
 % load data
@@ -77,7 +82,7 @@ eeg_data.spat = laplace_filter(eeg_data.pre);
 % epoch trials according to conditions
 
 % get region of interest -> reference and cue samples
-[eeg_roi.ref, eeg_roi.ac, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data, params, BCI);
+[eeg_roi.ref, eeg_roi.ac, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data.spat, eeg_data.marker_rs, params, BCI);
 
 
 % -- 
