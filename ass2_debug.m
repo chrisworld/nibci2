@@ -8,9 +8,9 @@ clc;
 
 % add library path
 addpath('./ignore/Supporting Code Package/');
-addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection');
 addpath('./ignore/Supporting Code Package/eegplot_cp')
 addpath('./ignore/Supporting Code Package/csp_20160122');
+addpath('./ignore/Supporting Code Package/lda_20160129');
 addpath('./ignore/eeglab2019_0/')
 
 % erds maps
@@ -74,10 +74,10 @@ eeg_data.spat = laplace_filter(eeg_data.pre);
 % feature windows
 
 % frequency band for hand
-fw1 = [1, 15];
+fw1 = [4, 20];
 
 % frequency band for foot
-fw2 = [15, 30];
+fw2 = [4, 20];
 
 % filter
 fb = filter_bank(eeg_data.spat, BCI, fw1, fw2);
@@ -130,11 +130,24 @@ s_csp = zeros(n_csp_ch, n_samples_per_trial, n_trials);
 s_csp(:, BCI.classlabels==1, :) = s_csp_roi_h.trial(:, BCI.classlabels==1, :);
 s_csp(:, BCI.classlabels==2, :) = s_csp_roi_f.trial(:, BCI.classlabels==2, :);
 
-% calculate band power
-x_train = log10(sum(s_csp .^ 2, 3));
+% calculate band power -> feature vector [trials_samples x features]
+x_train = squeeze(permute(log10(sum(s_csp .^ 2, 2)), [2, 3, 1]));
 
 fprintf('x_train size: (%d, %d)\n', size(x_train))
 
 
 % --
 % lda train
+
+% train lda
+model_lda = lda_train(x_train, BCI.classlabels);
+
+% test lda prediction
+[predicted_classes, linear_scores, class_probabilities] = lda_predict(model_lda, x_train);
+
+% score accuracy
+correct_pred = sum(predicted_classes == BCI.classlabels);
+false_pred = length(predicted_classes) - correct_pred;
+acc = correct_pred / length(predicted_classes);
+
+fprintf('\n---\n correct pred: [%d], false pred: [%d]  \n acc: [%.4f]\n', correct_pred, false_pred,  acc)
