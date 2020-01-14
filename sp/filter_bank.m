@@ -16,7 +16,7 @@ function fb = filter_bank(eeg, BCI, fw1, fw2)
 
   % apply filter
   fb(1, :, :) = permute(filtfilt(b1, a1, eeg'), [2 1]);
-  fb(1, :, :) = permute(filtfilt(b2, a2, eeg'), [2 1]);;
+  fb(2, :, :) = permute(filtfilt(b2, a2, eeg'), [2 1]);;
 
 
 
