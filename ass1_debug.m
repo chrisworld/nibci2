@@ -153,7 +153,7 @@ data = permute(eeg_data.spat, [2, 1]);
 erds_maps.c1 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 1);
 erds_maps.c2 = calcErdsMap(data, header_train, erds_params.t, erds_params.f_bord, 'ref', erds_params.t_ref, 'sig', 'boot', 'alpha', 0.01, 'class', 2);
 
-% plot erds maps
+% plot erds maps: ERS is blue and ERD is red
 plotErdsMap(erds_maps.c1);
 plotErdsMap(erds_maps.c2);
 
