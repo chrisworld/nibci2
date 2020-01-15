@@ -1,7 +1,7 @@
 % --
 % pre-filtering of the eeg_signal
 
-function [eeg_data, params] = eeg_reshape(eeg_data, params, BCI)
+function [eeg_pre, params] = pre_filter_eeg(eeg, params, BCI)
 
   % band pass
   params.bp_order = 4;
@@ -11,7 +11,7 @@ function [eeg_data, params] = eeg_reshape(eeg_data, params, BCI)
   [params.b_bp, params.a_bp] = butter(params.bp_order, params.bp_f_win_pre / (BCI.SampleRate / 2));
 
   % apply filter
-  eeg_data.pre = filter(params.b_bp, params.a_bp, eeg_data.rs);
+  eeg_pre = filter(params.b_bp, params.a_bp, eeg);
 
   % notch filter parameters
   params.notch_Wo = 50 / (BCI.SampleRate / 2);
@@ -22,4 +22,4 @@ function [eeg_data, params] = eeg_reshape(eeg_data, params, BCI)
   %freqz(b, a)
 
   % apply filter
-  eeg_data.pre = filter(params.b_notch, params.a_notch, eeg_data.pre);
+  eeg_pre = filter(params.b_notch, params.a_notch, eeg_pre);

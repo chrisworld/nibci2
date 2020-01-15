@@ -1,5 +1,6 @@
 % --
 % ass2 debug file
+% csp training and pipline
 
 % clear all
 close all;
@@ -37,9 +38,7 @@ fprintf('n_ch: %d, n_trials: %d, n_classes: %d\n', n_ch, n_trials, n_classes)
 
 
 % --
-% concatenate runs
-
-% eeg format: [block, ch, time]
+% concatenate runs, eeg format: [block, ch, time]
 
 % add times and Marker to struct
 eeg_data.time = Marker.Time;
@@ -61,18 +60,14 @@ params.rs_factor = 2;
 
 % -- 
 % prefiltering
-[eeg_data, params] = pre_filter_eeg(eeg_data, params, BCI);
-
-
-% --
-% spatial filtering (optional)
-eeg_data.spat = laplace_filter(eeg_data.pre);
+[eeg_data.pre, params] = pre_filter_eeg(eeg_data.rs, params, BCI);
 
 
 % --
 % get features with filter bank
 
-% feature windows
+% amount of bandpass filter
+n_band = 2;
 
 % frequency band for hand
 fw1 = [5, 10];
@@ -81,7 +76,7 @@ fw1 = [5, 10];
 fw2 = [11, 25];
 
 % filter
-fb = filter_bank(eeg_data.spat, BCI, fw1, fw2);
+fb = filter_bank(eeg_data.pre, BCI, fw1, fw2);
 
 
 % --
@@ -91,17 +86,10 @@ fb = filter_bank(eeg_data.spat, BCI, fw1, fw2);
 [fb_hand.ref, fb_hand.ac, fb_hand.cue, fb_hand.trial, marker_info] = get_eeg_roi(squeeze(fb(1, :, :)), eeg_data.marker_rs, params, BCI);
 [fb_foot.ref, fb_foot.ac, fb_foot.cue, fb_foot.trial, marker_info] = get_eeg_roi(squeeze(fb(2, :, :)), eeg_data.marker_rs, params, BCI);
 
+% number of samples per trial
 n_samples_per_trial = size(fb_hand.trial, 2);
 
-
-% get class labeled signals with dimensions: [samples x channels x trials]
-data_class.hand = permute(fb_hand.trial(:, :, BCI.classlabels==1), [2, 1, 3]);
-data_class.foot = permute(fb_foot.trial(:, :, BCI.classlabels==2), [2, 1, 3]);
-
-% csp training [samples x channels x trials] -> [channels x channels]
-csp = csp_train(data_class.hand, data_class.foot, 'standard');
-
-% other approach
+% train csp with each filter band separately [samples x channels x trials] -> [channels x channels]
 csp_hand = csp_train(permute(fb_hand.trial(:, :, BCI.classlabels==1), [2, 1, 3]), permute(fb_hand.trial(:, :, BCI.classlabels==2), [2, 1, 3]), 'standard');
 csp_foot = csp_train(permute(fb_foot.trial(:, :, BCI.classlabels==1), [2, 1, 3]), permute(fb_foot.trial(:, :, BCI.classlabels==2), [2, 1, 3]), 'standard');
 
@@ -109,63 +97,56 @@ csp_foot = csp_train(permute(fb_foot.trial(:, :, BCI.classlabels==1), [2, 1, 3])
 % --
 % obtain features
 
-% choose best two csp eigenvectors
-C = [csp(:, 1), csp(:, 3)];
+% choose best csp eigenvectors
+C_hand = [csp_hand(:, 1:2), csp_hand(:, 15:16)];
+C_foot = [csp_foot(:, 1:2), csp_foot(:, 15:16)];
 
-% other approach
-%C = [csp_hand(:, 1), csp_hand(:, 3), csp_foot(:, 1), csp_foot(:, 3)];
+% amount of csp channels per pipeline
+n_csp_ch = size(C_hand, 2);
 
-C_hand = [csp_hand(:, 1), csp_hand(:, 3)];
-C_foot = [csp_foot(:, 1), csp_foot(:, 3)];
-
-n_csp_ch = size(C, 2);
-
-% transform signal [channels x samples]
-%s_csp_band_hand = C' * squeeze(fb(1, :, :));
-%s_csp_band_foot = C' * squeeze(fb(2, :, :));
-
+% transform bandpass signals [channels x samples]
 s_csp_band_hand = C_hand' * squeeze(fb(1, :, :));
 s_csp_band_foot = C_foot' * squeeze(fb(2, :, :));
-
-%s_csp_band = C' * eeg_data.spat;
 
 % get trials [channels x samples x trials]
 [s_csp_roi_h.ref, s_csp_roi_h.ac, s_csp_roi_h.cue, s_csp_roi_h.trial, marker_info] = get_eeg_roi(s_csp_band_hand, eeg_data.marker_rs, params, BCI);
 [s_csp_roi_f.ref, s_csp_roi_f.ac, s_csp_roi_f.cue, s_csp_roi_f.trial, marker_info] = get_eeg_roi(s_csp_band_foot, eeg_data.marker_rs, params, BCI);
 
-%[s_csp_roi.ref, s_csp_roi.ac, s_csp_roi.cue, s_csp_roi.trial, marker_info] = get_eeg_roi(s_csp_band, eeg_data.marker_rs, params, BCI);
+% calculate band power for each frequency band
+bp_hand = squeeze(permute(log10(sum(s_csp_roi_h.trial.^2, 2)), [2, 3, 1]));
+bp_foot = squeeze(permute(log10(sum(s_csp_roi_f.trial.^2, 2)), [2, 3, 1]));
 
+% data for training and testing
+x_data = [bp_hand, bp_foot];
 
-% init csp signal [channels x samples x trials]
-s_csp = zeros(n_csp_ch, n_samples_per_trial, n_trials);
+% choose train and test data
+x_train = x_data(1:100, :);
+y_train = BCI.classlabels(1:100);
 
-% get filtered trials for each class
-s_csp(:, :, BCI.classlabels==1) = s_csp_roi_h.trial(:, :, BCI.classlabels==1);
-s_csp(:, :, BCI.classlabels==2) = s_csp_roi_f.trial(:, :, BCI.classlabels==2);
+x_test = x_data(101:120, :);
+y_test = BCI.classlabels(101:120);
 
-% calculate band power -> feature vector [trials_samples x features]
-x_train = squeeze(permute(log10(sum(s_csp .^ 2, 2)), [2, 3, 1]));
 
 % some prints
 fprintf('n_samples_per_trial: %d\n', n_samples_per_trial)
 fprintf('n_csp_ch: %d\n', n_csp_ch)
-fprintf('csp size: (%d, %d)\n', size(csp))
-fprintf('c size: (%d, %d)\n', size(C))
+fprintf('x_data size: (%d, %d)\n', size(x_data))
 fprintf('x_train size: (%d, %d)\n', size(x_train))
+fprintf('x_test size: (%d, %d)\n', size(x_test))
 
 
 % --
 % lda train
 
 % train lda
-model_lda = lda_train(x_train, BCI.classlabels);
+model_lda = lda_train(x_train, y_train);
 
 % test lda prediction
-[predicted_classes, linear_scores, class_probabilities] = lda_predict(model_lda, x_train);
+[y_h, linear_scores, class_probabilities] = lda_predict(model_lda, x_test);
 
 % score accuracy
-correct_pred = sum(predicted_classes == BCI.classlabels);
-false_pred = length(predicted_classes) - correct_pred;
-acc = correct_pred / length(predicted_classes);
+correct_pred = sum(y_h == y_test);
+false_pred = length(y_h) - correct_pred;
+acc = correct_pred / length(y_h);
 
 fprintf('\n---\n correct pred: [%d], false pred: [%d]  \n acc: [%.4f]\n', correct_pred, false_pred,  acc)
