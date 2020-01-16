@@ -11,6 +11,8 @@ function l = laplace_filter(X)
   l(2, :) = X(Cz_idx, :);
   l(3, :) = X(C4_idx, :);
 
+  fprintf('Laplace filtering not implemented, only C3, Cz and C4 selected.\n')
+
   %FC3_idx = 2;
   %C5_idx = 5;
 

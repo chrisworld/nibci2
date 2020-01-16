@@ -5,9 +5,6 @@ close all;
 clear all;
 clc;
 
-% octave packages
-%pkg load signal;
-
 % add library path
 addpath('./ignore/Supporting Code Package/');
 addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection');
@@ -65,12 +62,12 @@ eeg_data.flat = reshape(permute(eeg_, [2 1 3]), n_ch, []);
 params.rs_factor = 2;
 
 % resample
-[eeg_data.rs, eeg_data.time_rs, eeg_data.marker_rs] = resample_eeg(eeg_data, params);
+[eeg_data.rs, eeg_data.time_rs, eeg_data.marker_rs] = resample_eeg(eeg_data.flat, eeg_data.time, eeg_data.marker, params);
 
 
 % -- 
 % prefiltering
-[eeg_data, params] = pre_filter_eeg(eeg_data, params, BCI);
+[eeg_data.pre, params] = pre_filter_eeg(eeg_data.rs, params, BCI);
 
 
 % --

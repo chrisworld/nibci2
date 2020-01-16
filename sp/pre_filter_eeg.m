@@ -23,3 +23,6 @@ function [eeg_pre, params] = pre_filter_eeg(eeg, params, BCI)
 
   % apply filter
   eeg_pre = filter(params.b_notch, params.a_notch, eeg_pre);
+
+  % print message
+  fprintf('Pre-filtering of signal done.\n')

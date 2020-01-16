@@ -26,10 +26,17 @@ function [ref, ac, cue, trial, marker_info] = get_eeg_roi(eeg, marker, params, B
   for m = 1 : length(unique(marker)) - 1
 
     % print function of marker
-    %disp(marker_info.func(m))
+    %disp(m)
 
-    % find sample positions of marker
-    marker_info.pos(m, :) = find(marker == m)';
+    if m == 1 || m == 6
+      marker_info.pos(m, 1:length(find(marker == m))) = find(marker == m)';
+    
+    else
+
+      % find sample positions of marker
+      marker_info.pos(m, :) = find(marker == m)';
+    end
+
 
   end
 
@@ -53,3 +60,5 @@ function [ref, ac, cue, trial, marker_info] = get_eeg_roi(eeg, marker, params, B
 
   % trial cue marker
   marker_info.trial_cue_pos = marker_info.pos(4, :);
+
+  fprintf('Region of interest extracted.\n')
