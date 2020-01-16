@@ -61,4 +61,4 @@ function [ref, ac, cue, trial, marker_info] = get_eeg_roi(eeg, marker, params, B
   % trial cue marker
   marker_info.trial_cue_pos = marker_info.pos(4, :);
 
-  fprintf('Region of interest extracted.\n')
+  %fprintf('Region of interest extracted.\n')

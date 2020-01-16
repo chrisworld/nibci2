@@ -25,25 +25,7 @@ n_ch = 16;
 
 
 % --
-% collect data
-
-% run simulink always before
-
-%% save run 1
-trial_saver(1, BCI, eeg, Marker);
-
-
-%% save run 2
-trial_saver(2, BCI, eeg, Marker);
-
-
-%% save run 3
-trial_saver(3, BCI, eeg, Marker);
-
-
-%% save run 4
-trial_saver(4, BCI, eeg, Marker);
-
+% load data
 
 %% concatenate runs
 conc_runs = run_concatenator();
@@ -79,28 +61,61 @@ params.rs_factor = 2;
 
 %%
 % --
-% spatial filtering (optional)
+% get features with filter bank
 
-eeg_data.spat = laplace_filter(eeg_data.pre);
+% frequency band for hand
+fw1 = [5, 10];
 
+% frequency band for foot
+fw2 = [11, 25];
 
-%%
-% -- 
-% epoch trials according to conditions
-
-% get region of interest -> reference and cue samples
-[eeg_roi.ref, eeg_roi.ac, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data.spat, eeg_data.marker_rs, params, BCI);
-
-
-%%
-% --
-% calculate psd
-
-[psd_c1, psd_c2] = calc_psd(eeg_roi.cue, params, BCI)
+% filter
+fb = filter_bank(eeg_data.pre, BCI, fw1, fw2);
 
 
 %%
 % --
-% ERDS maps
+% train csp
 
-calc_erds(eeg_data.spat, marker_info, params, BCI)
+[csp_hand, csp_foot] = train_fb_csp(fb, eeg_data.marker_rs, params, BCI);
+
+
+%%
+% --
+% calculate features with bandpower
+
+x_data = calc_features(fb, csp_hand, csp_foot, eeg_data.marker_rs, params, BCI);
+
+
+%% choose train and test data
+x_train = x_data(1:100, :);
+y_train = BCI.classlabels(1:100);
+
+x_test = x_data(101:120, :);
+y_test = BCI.classlabels(101:120);
+
+
+%%
+% --
+% lda train
+
+% train lda
+model_lda = lda_train(x_train, y_train);
+fprintf('LDA model trained.\n')  
+
+
+%% save lda model params
+save('./trained_params/model_lda.mat', 'model_lda');
+fprintf('LDA model params saved.\n')
+
+
+%%
+% --
+% test lda prediction
+
+[y_predict, linear_scores, class_probabilities] = lda_predict(model_lda, x_test);
+
+
+%% calc accuracy
+acc = calc_accuracy(y_predict, y_test);
+

@@ -55,7 +55,7 @@ eeg_data.flat = reshape(permute(eeg_, [2 1 3]), n_ch, []);
 params.rs_factor = 2;
 
 % resample
-[eeg_data.rs, eeg_data.time_rs, eeg_data.marker_rs] = resample_eeg(eeg_data, params);
+[eeg_data.rs, eeg_data.time_rs, eeg_data.marker_rs] = resample_eeg(eeg_data.flat, eeg_data.time, eeg_data.marker, params);
 
 
 % -- 
