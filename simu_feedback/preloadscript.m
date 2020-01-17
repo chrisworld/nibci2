@@ -66,7 +66,7 @@ disp('Channel Info:  (Name, Type)');
 disp(BCI.ch_info);
 
 %% Generate timings
-BCI.nTrials = 4;
+BCI.nTrials = 8;
 
 time_pre_run    = 5;
 time_pre_cue    = 2;

@@ -5,7 +5,7 @@
 global BCI;
 %global fig;
 %fig.fig = figure();
-
+hFig = figure;
 
 BCI.black = imread('black.png');
 BCI.hand = imread('hand.png');
@@ -14,6 +14,9 @@ BCI.cross = imread('cross.png');
 
 imshow(BCI.black);
 
+imshow(BCI.black);
+set(hFig, 'Units', 'normalized');
+set(hFig, 'Position', [0 0 1 1]);
 %BCI.hFig = figure(...
     %'Units', 'normalized',...
     %'Position', [0, 0, 1, 1]);

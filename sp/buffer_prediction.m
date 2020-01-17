@@ -22,4 +22,4 @@ function y_pred_true = buffer_prediction(read_buffer, y_true, BCI, fw1, fw2)
   y_pred_true = y_pred == y_true;
 
   % print message
-  fprintf('actual label: [%d], predicted label: [%d], output: [%d]\n', y_true, y_pred, y_pred_true)
+  %fprintf('actual label: [%d], predicted label: [%d], output: [%d]\n', y_true, y_pred, y_pred_true)

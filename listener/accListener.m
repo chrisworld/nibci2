@@ -35,30 +35,39 @@ end
 y_true = BCI.classlabels(trial_pos);
 
 % true or false prediction
-y_pred_true = buffer_prediction(read_buffer, y_true, BCI, f_bands.fw1, f_bands.fw2);
+%y_pred_true = buffer_prediction(read_buffer, y_true, BCI, f_bands.fw1, f_bands.fw2);
 
-%sepp = rand;
-if BCI.markers(BCI.cStep) == 5
+
+m = BCI.markers(BCI.cStep)-1;  
+
+% if a trials starts and until the end of the MI part, classify
+if m>=2 && m < 5
+    idx = BCI.idx;
+    y_pred_true = buffer_prediction(read_buffer, y_true, BCI, f_bands.fw1, f_bands.fw2);
     %disp('Listener: ')
     %disp(toc(BCI.t_start))
+    if m == 4
 
-    % limit marker size
-    lim_bottom = 20;
-    lim_top = 800;
+        % limit marker size
+        lim_bottom = 20;
+        lim_top = 800;
 
-    markerS = get(hLine, 'MarkerSize');
+        markerS = get(hLine, 'MarkerSize');
 
-    % change marker according to prediction
-    if y_pred_true
-        set(hLine, 'MarkerSize', min(max(markerS+10, lim_bottom), lim_top))
-    else
-        set(hLine, 'MarkerSize', min(max(markerS-10, lim_bottom), lim_top))
+        % change marker according to prediction
+        if y_pred_true
+            set(hLine, 'MarkerSize', min(max(markerS+10, lim_bottom), lim_top))
+        else
+            set(hLine, 'MarkerSize', min(max(markerS-10, lim_bottom), lim_top))
+        end
     end
-
+    data.predicted(idx+1) = data.predicted(idx+1) + y_pred_true;
+    BCI.idx = idx+1;
+    disp(BCI.idx)
 end
 
 drawnow('expose')
-data.predicted = [predicted, y_pred_true];
+%data.predicted = [predicted, y_pred_true];
 set_param(block.BlockHandle, 'UserData', data);
 
 
