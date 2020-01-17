@@ -12,8 +12,8 @@ function x_data = calc_features_online(fb, csp_hand, csp_foot)
   s_csp_band_foot = C_foot' * squeeze(fb(2, :, :));
 
   % calculate band power for each frequency band -> [trials x channels]
-  bp_hand = permute(log10(sum(s_csp_band_hand.^2, 2)), [2, 1]);
-  bp_foot = permute(log10(sum(s_csp_band_foot.^2, 2)), [2, 1]);
+  bp_hand = permute(log10(mean(s_csp_band_hand.^2, 2)), [2, 1]);
+  bp_foot = permute(log10(mean(s_csp_band_foot.^2, 2)), [2, 1]);
 
   % data for training and testing
   x_data = [bp_hand, bp_foot];

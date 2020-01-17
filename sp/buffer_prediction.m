@@ -1,10 +1,7 @@
 % --
 % Predicts the samples in the buffer and compares it to the actual classlabel
 
-function y_pred_true = buffer_prediction(read_buffer, BCI, fw1, fw2)
-
-  % get true label from BCI
-  y_true = BCI.classlabels(floor((BCI.cStep+2) / 4));
+function y_pred_true = buffer_prediction(read_buffer, y_true, BCI, fw1, fw2)
 
   % filter band
   fb = filter_bank(read_buffer, BCI, fw1, fw2);

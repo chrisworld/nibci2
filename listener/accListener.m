@@ -23,8 +23,19 @@ read_buffer = permute(block.OutputPort(1).Data, [2 1]);
 % get frequency bands
 f_bands = load('trained_params/f_bands.mat');
 
+% trial position
+trial_pos = floor((BCI.cStep+2) / 4);
+
+% end of this script
+if(trial_pos > length(BCI.classlabels))
+  return
+end
+
+% label
+y_true = BCI.classlabels(trial_pos);
+
 % true or false prediction
-y_pred_true = buffer_prediction(read_buffer, BCI, f_bands.fw1, f_bands.fw2);
+y_pred_true = buffer_prediction(read_buffer, y_true, BCI, f_bands.fw1, f_bands.fw2);
 
 %sepp = rand;
 if BCI.markers(BCI.cStep) == 5

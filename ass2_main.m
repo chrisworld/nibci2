@@ -15,6 +15,7 @@ addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection')
 % add internal paths
 addpath('./gui')
 addpath('./simu_feedback')
+addpath('./simu_feedback/TiA_client')
 addpath('./sp')
 addpath('./listener')
 addpath('./pictures')
@@ -140,7 +141,37 @@ fprintf('LDA model params saved.\n')
 
 [y_predict, linear_scores, class_probabilities] = lda_predict(model_lda, x_test);
 
-
-%% calc accuracy
+% calc accuracy
 acc = calc_accuracy(y_predict, y_test);
+
+
+
+
+%% predition test with buffer
+
+% trial for testing
+i_trial = 11
+y_true = BCI.classlabels(i_trial)
+
+% lda of training data
+[y_predict, linear_scores, class_probabilities] = lda_predict(model_lda, x_train(i_trial, :));
+y_predict
+
+% get roi [channels x samples x trials]
+[pre.ref, pre.ac, pre.cue, pre.trial, marker_info] = get_eeg_roi(eeg_data.pre, eeg_data.marker_rs, params, BCI);
+
+% test buffer
+y_pred_true = buffer_prediction(pre.trial(:, :, i_trial), y_true, BCI, fw1, fw2)
+
+n_samples = size(pre.trial, 2);
+
+score = [];
+jump = 64
+for si = 1:jump:n_samples-1
+  read_buffer = pre.trial(:, si:si+jump, i_trial);
+  y_pred_true = buffer_prediction(read_buffer, y_true, BCI, fw1, fw2);
+  %i_trial = i_trial + 1;
+  score = [score, y_pred_true];
+end
+mean(score)
 
