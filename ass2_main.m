@@ -18,10 +18,33 @@ addpath('./ignore/biosig/biosig/t310_ERDSMaps')
 addpath('./gui')
 addpath('./simu')
 addpath('./sp')
-
+addpath('./listener')
+addpath('./pictures')
+%%
 % --
 % some vars
 n_ch = 16;
+
+% set number of splits á 30 trials for the the first part
+
+% open_system('graz_bci_model');
+% nTrials = 4
+% 
+% for i=1:nTrials
+%     set_param('graz_bci_model', 'SimulationCommand', 'start');
+% 
+%     filename = ['./eeg_recordings/trial_runs/trail_run', num2str(i)];
+%     save(filename);
+%     pause(2)
+% end
+
+%%
+
+rmpath('./simu')
+addpath('./simu_feedback');
+
+
+
 
 
 % --
