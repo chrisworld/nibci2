@@ -22,43 +22,35 @@ switch flag,
           switch BCI.markers(BCI.cStep),
           case 2
               imshow(BCI.cross, 'Parent', hAxes);
+              set(hFig,'Units', 'normalized');
+              set(hFig, 'Position', [0 0 1 1]);
+              BCI.idx = 0;
           case 3
-              %hFig = gcf;
-              %hAxes = hFig.Children;    
-              %disp('case 3')
               label = BCI.classlabels(floor((BCI.cStep+1)/4));
 
               %disp(toc(BCI.t_start))
               if label == 1
                 imshow(BCI.hand, 'Parent', hAxes);
+                set(hFig,'Units', 'normalized');
+                set(hFig, 'Position', [0 0 1 1]);
               else
                 imshow(BCI.foot, 'Parent', hAxes);
+                set(hFig,'Units', 'normalized');
+                set(hFig, 'Position', [0 0 1 1]);
               end
           case 4
               %disp('case 4')
               %disp(toc(BCI.t_start))
-
               plot(1,1, '.g', 'MarkerSize', 200, 'Parent', hAxes);
+              set(hFig,'Units', 'normalized');
+              set(hFig, 'Position', [0 0 1 1]);
           case 5
               imshow(BCI.black, 'Parent', hAxes);
+              set(hFig,'Units', 'normalized');
+              set(hFig, 'Position', [0 0 1 1]);
               %disp('case 5')
               %disp(toc(BCI.t_start))
           end
-          
-          %if out == 4
-              %BCI.hFig = plot(1,1, '.g', 'MarkerSize', 200, 'Parent',hAxes);
-          %end
-          
-          %hAxes = 
-          %end
-          %data = get_param('graz_bci_model/Buffer', 'UserData');
-          %hAxes = data.fig.Children;
-          %if out == 1
-          %  disp(hAxes)
-          %end
-          %disp(out)
-          
-          
           BCI.cStep = BCI.cStep+1;
       else
           out = false;
