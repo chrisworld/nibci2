@@ -2,8 +2,8 @@
 # Our Stuff
 
 ignore/
-eeg_recordings/
-trained_params/
+eeg_recordings/trial_runs
+#trained_params/
 
 # --
 # Matlab specific stuff

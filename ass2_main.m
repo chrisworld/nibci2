@@ -1,5 +1,5 @@
 % --
-% ass1 main file
+% ass2 main file
 
 close all;
 clear all;
@@ -14,10 +14,12 @@ addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection')
 
 % add internal paths
 addpath('./gui')
-addpath('./simu')
+addpath('./simu_feedback')
 addpath('./sp')
 addpath('./listener')
 addpath('./pictures')
+addpath('./trained_params')
+
 %%
 % --
 % some vars
@@ -38,8 +40,6 @@ n_ch = 16;
 
 %%
 
-rmpath('./simu')
-addpath('./simu_feedback');
 
 
 
@@ -90,7 +90,10 @@ fw1 = [5, 10];
 % frequency band for foot
 fw2 = [11, 25];
 
-% filter
+%% save f_bands
+save('./trained_params/f_bands.mat', 'fw1', 'fw2');
+
+%% filter
 fb = filter_bank(eeg_data.pre, BCI, fw1, fw2);
 fprintf('Filterbank applied with fw1:[%d, %d] and fw2:[%d, %d].\n', fw1, fw2)
 

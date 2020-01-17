@@ -17,18 +17,17 @@ hAxes = hFig.Children;
 hLine = hAxes.Children;
 %disp(toc(BCI.t_start))
 
+% read buffer: [samples x channels] -> [channels x samples]
+read_buffer = permute(block.OutputPort(1).Data, [2 1]);
+
+% get frequency bands
+f_bands = load('trained_params/f_bands.mat');
+
+% true or false prediction
+y_pred_true = buffer_prediction(read_buffer, BCI, f_bands.fw1, f_bands.fw2);
+
 %sepp = rand;
 if BCI.markers(BCI.cStep) == 5
-
-    % read buffer: [samples x channels] -> [channels x samples]
-    read_buffer = permute(block.OutputPort(1).Data, [2 1]);
-
-    % get frequency bands
-    f_bands = load('trained_params/f_bands.mat');
-
-    % true or false prediction
-    y_pred_true = buffer_prediction(read_buffer, BCI, f_bands.fw1, f_bands.fw2);
-
     %disp('Listener: ')
     %disp(toc(BCI.t_start))
 
@@ -45,12 +44,11 @@ if BCI.markers(BCI.cStep) == 5
         set(hLine, 'MarkerSize', min(max(markerS-10, lim_bottom), lim_top))
     end
 
-    drawnow('expose')
-    data.predicted = [predicted, y_pred_true];
-    set_param(block.BlockHandle, 'UserData', data);
-
 end
 
+drawnow('expose')
+data.predicted = [predicted, y_pred_true];
+set_param(block.BlockHandle, 'UserData', data);
 
 
 
