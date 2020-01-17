@@ -18,7 +18,7 @@ function x_data = calc_features(fb, csp_hand, csp_foot, marker, params, BCI)
   [s_csp_roi_h.ref, s_csp_roi_h.ac, s_csp_roi_h.cue, s_csp_roi_h.trial, marker_info] = get_eeg_roi(s_csp_band_hand, marker, params, BCI);
   [s_csp_roi_f.ref, s_csp_roi_f.ac, s_csp_roi_f.cue, s_csp_roi_f.trial, marker_info] = get_eeg_roi(s_csp_band_foot, marker, params, BCI);
 
-  % calculate band power for each frequency band
+  % calculate band power for each frequency band -> [trials x channels]
   bp_hand = squeeze(permute(log10(sum(s_csp_roi_h.trial.^2, 2)), [2, 3, 1]));
   bp_foot = squeeze(permute(log10(sum(s_csp_roi_f.trial.^2, 2)), [2, 3, 1]));
 

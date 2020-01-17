@@ -22,6 +22,7 @@ addpath('./ignore/biosig/biosig/t310_ERDSMaps')
 addpath('./gui')
 addpath('./simu')
 addpath('./sp')
+addpath('./trained_params')
 
 
 % --

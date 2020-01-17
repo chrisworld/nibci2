@@ -7,12 +7,10 @@ clc;
 
 % add library path
 addpath('./ignore/Supporting Code Package/');
-addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection');
 addpath('./ignore/Supporting Code Package/eegplot_cp')
-addpath('./ignore/eeglab2019_0/')
-
-% erds maps
-addpath('./ignore/biosig/biosig/t310_ERDSMaps')
+addpath('./ignore/Supporting Code Package/csp_20160122');
+addpath('./ignore/Supporting Code Package/lda_20160129');
+addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection');
 
 % add internal paths
 addpath('./gui')
@@ -94,6 +92,7 @@ fw2 = [11, 25];
 
 % filter
 fb = filter_bank(eeg_data.pre, BCI, fw1, fw2);
+fprintf('Filterbank applied with fw1:[%d, %d] and fw2:[%d, %d].\n', fw1, fw2)
 
 
 %%

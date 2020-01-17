@@ -38,7 +38,7 @@ function [psd_c1, psd_c2] = calc_psd(eeg, params, BCI)
     ylabel('PSD')
     xlabel('Time [s]')
     grid()
-    legend('class 1', 'class 2')
+    legend('hand', 'foot')
     %print(['P300_std_' char(ch_selection(i))],'-dpng')
   end
 

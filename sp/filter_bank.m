@@ -6,6 +6,7 @@ function fb = filter_bank(eeg, BCI, fw1, fw2)
   % filter time series signal (2D)
   % f range: [1, 60]Hz
 
+  % eeg shape: [channels x samples]
   fb = zeros([2, size(eeg)]);
 
   % band pass
@@ -20,7 +21,7 @@ function fb = filter_bank(eeg, BCI, fw1, fw2)
   fb(2, :, :) = permute(filtfilt(b2, a2, eeg'), [2 1]);
 
   % print message
-  fprintf('Filterbank applied with fw1:[%d, %d] and fw2:[%d, %d].\n', fw1, fw2)
+  %fprintf('Filterbank applied with fw1:[%d, %d] and fw2:[%d, %d].\n', fw1, fw2)
 
 
 
