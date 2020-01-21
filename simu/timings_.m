@@ -21,55 +21,33 @@ switch flag,
           hAxes = hFig.Children;
           switch BCI.markers(BCI.cStep),
           case 2
-              imshow(BCI.cross, 'Parent', hAxes);
+              set(hAxes(1),'Visible','off');
+              set(hAxes(2),'Visible','off');
+              set(hAxes(3),'Visible','on');
           case 3
-              %hFig = gcf;
-              %hAxes = hFig.Children;    
-              %disp('case 3')
               label = BCI.classlabels(floor((BCI.cStep+1)/4));
 
-              %disp(toc(BCI.t_start))
+              % label = 1: hand
               if label == 1
-                imshow(BCI.hand, 'Parent', hAxes);
+                set(hAxes(1),'Visible','on');
+                set(hAxes(2),'Visible','off');
+                set(hAxes(3),'Visible','off');
+               % label = 2: foot
               else
-                imshow(BCI.foot, 'Parent', hAxes);
+                set(hAxes(1),'Visible','on');
+                set(hAxes(2),'Visible','off');
+                set(hAxes(3),'Visible','off');
               end
-          %case 4
-              %disp('case 4')
-              %disp(toc(BCI.t_start))
-
-              %plot(1,1, '.g', 'MarkerSize', 200, 'Parent', hAxes);
           case 5
-              imshow(BCI.black, 'Parent', hAxes);
-              %disp('case 5')
-              %disp(toc(BCI.t_start))
+                set(hAxes(1),'Visible','off');
+                set(hAxes(2),'Visible','off');
+                set(hAxes(3),'Visible','off');
           end
-          
-          %if out == 4
-              %BCI.hFig = plot(1,1, '.g', 'MarkerSize', 200, 'Parent',hAxes);
-          %end
-          
-          %hAxes = 
-          %end
-          %data = get_param('graz_bci_model/Buffer', 'UserData');
-          %hAxes = data.fig.Children;
-          %if out == 1
-          %  disp(hAxes)
-          %end
-          %disp(out)
-          
-          
           BCI.cStep = BCI.cStep+1;
       else
           out = false;
           stopSim = false;
       end
-      %data = get_param('graz_bci_model/Buffer', 'UserData');
-      %hAxes = data.fig.Children;
-      %if out == 1
-          %imshow([0 0 0], 'Parent', hAxes);
-      %    disp(hAxes)
-      %end  
       sys = double([out, stopSim]);
       
   case 9 % Stopping model
