@@ -5,20 +5,21 @@ function accListener(block, ei) %#ok<INUSD>
 global BCI;
 
 % get UserData from the buffer element
-data = get_param(block.BlockHandle,'UserData');
+blk = 'graz_bci_model/Buffer';
+data = get_param(blk,'UserData');
 
 % handles for the figure as well as 
 %hFig = BCI.hFig;%data.fig;
 %hFig = data.fig;
 hFig = gcf;
-predicted = data.predicted;
+%predicted = data.predicted;
 
 hAxes = hFig.Children;
-hLine = hAxes.Children;
+hLine = hAxes(1).Children.Children;
 %disp(toc(BCI.t_start))
 
 % read buffer: [samples x channels] -> [channels x samples]
-read_buffer = permute(block.OutputPort(1).Data, [2 1]);
+read_buffer = permute(block.InputPort(1).Data, [2 1]);
 
 % get frequency bands
 f_bands = load('trained_params/f_bands.mat');
@@ -61,14 +62,14 @@ if m>=2 && m < 5
             set(hLine, 'MarkerSize', min(max(markerS-10, lim_bottom), lim_top))
         end
     end
+    %data.predicted(idx+1) = toc(BCI.t_start);
     data.predicted(idx+1) = data.predicted(idx+1) + y_pred_true;
     BCI.idx = idx+1;
-    disp(BCI.idx)
 end
 
 drawnow('expose')
 %data.predicted = [predicted, y_pred_true];
-set_param(block.BlockHandle, 'UserData', data);
+set_param(blk, 'UserData', data);
 
 
 

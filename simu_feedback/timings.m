@@ -21,35 +21,41 @@ switch flag,
           hAxes = hFig.Children;
           switch BCI.markers(BCI.cStep),
           case 2
-              imshow(BCI.cross, 'Parent', hAxes);
-              set(hFig,'Units', 'normalized');
-              set(hFig, 'Position', [0 0 1 1]);
+              %imshow(BCI.cross, 'Parent', hAxes);
+              %set(hFig,'Units', 'normalized');
+              %set(hFig, 'Position', [0 0 1 1]);
+              set(hAxes(1),'Visible','off');
+              set(hAxes(2),'Visible','off');
+              set(hAxes(3),'Visible','off');
+              set(hAxes(4),'Visible','on');
               BCI.idx = 0;
           case 3
               label = BCI.classlabels(floor((BCI.cStep+1)/4));
 
               %disp(toc(BCI.t_start))
               if label == 1
-                imshow(BCI.hand, 'Parent', hAxes);
-                set(hFig,'Units', 'normalized');
-                set(hFig, 'Position', [0 0 1 1]);
+                set(hAxes(1),'Visible','off');
+                set(hAxes(3),'Visible','off');
+                set(hAxes(4),'Visible','off');
+                set(hAxes(2),'Visible','on');
               else
-                imshow(BCI.foot, 'Parent', hAxes);
-                set(hFig,'Units', 'normalized');
-                set(hFig, 'Position', [0 0 1 1]);
+                set(hAxes(1),'Visible','off');
+                set(hAxes(2),'Visible','off');
+                set(hAxes(4),'Visible','off');
+                set(hAxes(3),'Visible','on');
               end
           case 4
-              %disp('case 4')
-              %disp(toc(BCI.t_start))
-              plot(1,1, '.g', 'MarkerSize', 200, 'Parent', hAxes);
-              set(hFig,'Units', 'normalized');
-              set(hFig, 'Position', [0 0 1 1]);
+                set(hAxes(2),'Visible','off');
+                set(hAxes(3),'Visible','off');
+                set(hAxes(4),'Visible','off');
+                ms = hAxes(1).Children.Children;
+                set(ms,'MarkerSize',300);
+                set(hAxes(1),'Visible','on');
           case 5
-              imshow(BCI.black, 'Parent', hAxes);
-              set(hFig,'Units', 'normalized');
-              set(hFig, 'Position', [0 0 1 1]);
-              %disp('case 5')
-              %disp(toc(BCI.t_start))
+                set(hAxes(1),'Visible','off');
+                set(hAxes(2),'Visible','off');
+                set(hAxes(4),'Visible','off');
+                set(hAxes(3),'Visible','off');
           end
           BCI.cStep = BCI.cStep+1;
       else
