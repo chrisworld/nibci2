@@ -21,6 +21,11 @@ addpath('./listener')
 addpath('./pictures')
 addpath('./trained_params')
 
+%% remove internal paths
+rmpath('./simu')
+rmpath('./simu/TiA_client')
+
+
 %%
 % --
 % some vars

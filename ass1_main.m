@@ -17,7 +17,9 @@ addpath('./ignore/biosig/biosig/t310_ERDSMaps')
 % add internal paths
 addpath('./gui')
 addpath('./simu')
+addpath('./simu/TiA_client')
 addpath('./sp')
+
 
 % --
 % some vars
