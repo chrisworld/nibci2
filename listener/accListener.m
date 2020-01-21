@@ -12,11 +12,10 @@ data = get_param(blk,'UserData');
 %hFig = BCI.hFig;%data.fig;
 %hFig = data.fig;
 hFig = gcf;
-%predicted = data.predicted;
+predicted = data.predicted;
 
 hAxes = hFig.Children;
 hLine = hAxes(1).Children.Children;
-%disp(toc(BCI.t_start))
 
 % read buffer: [samples x channels] -> [channels x samples]
 read_buffer = permute(block.InputPort(1).Data, [2 1]);
@@ -54,16 +53,20 @@ if m>=2 && m < 5
         lim_top = 800;
 
         markerS = get(hLine, 'MarkerSize');
+        %markerColor = (markerS - lim_bottom)/(lim_top - lim_bottom);
+        %disp(markerColor)
+        %set(hLine, 'MarkerFaceColor', [markerColor 0.5 0.5]);
 
         % change marker according to prediction
         if y_pred_true
-            set(hLine, 'MarkerSize', min(max(markerS+10, lim_bottom), lim_top))
+            set(hLine, 'MarkerSize', min(max(markerS+20, lim_bottom), lim_top))
+            %set(hLine, 'MarkerFaceColor', [markerColor 0.5 0.5]);
         else
-            set(hLine, 'MarkerSize', min(max(markerS-10, lim_bottom), lim_top))
+            set(hLine, 'MarkerSize', min(max(markerS-20, lim_bottom), lim_top))
+            %set(hLine, 'MarkerFaceColor', [markerColor 0.5 0.5]);
         end
     end
-    %data.predicted(idx+1) = toc(BCI.t_start);
-    data.predicted(idx+1) = data.predicted(idx+1) + y_pred_true;
+    data.predicted(trial_pos, idx+1) = y_pred_true;
     BCI.idx = idx+1;
 end
 
@@ -72,23 +75,3 @@ drawnow('expose')
 set_param(blk, 'UserData', data);
 
 
-
-
-
-
-
-%t = block.OutputPort(1).Data;
-%disp(t)
-%disp(BCI.classlabels(BCI.cStep))
-%size(t)
-%######################################
-% function applying CSP filtering and applying classification from here!
-%######################################
-
-%sepp = get_param(block.OutputPort(3), 'Data')
-
-% stemPlot  = get_param(block.BlockHandle,'UserData');
-% 
-% est = block.Dwork(2).Data;
-% set(stemPlot(2),'YData',est);
-% drawnow('expose');

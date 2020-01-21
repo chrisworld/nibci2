@@ -33,11 +33,13 @@ switch flag,
               label = BCI.classlabels(floor((BCI.cStep+1)/4));
 
               %disp(toc(BCI.t_start))
+              % label 1 = hand
               if label == 1
                 set(hAxes(1),'Visible','off');
                 set(hAxes(3),'Visible','off');
                 set(hAxes(4),'Visible','off');
                 set(hAxes(2),'Visible','on');
+              % label 2 = foot
               else
                 set(hAxes(1),'Visible','off');
                 set(hAxes(2),'Visible','off');
@@ -62,12 +64,6 @@ switch flag,
           out = false;
           stopSim = false;
       end
-      %data = get_param('graz_bci_model/Buffer', 'UserData');
-      %hAxes = data.fig.Children;
-      %if out == 1
-          %imshow([0 0 0], 'Parent', hAxes);
-      %    disp(hAxes)
-      %end  
       sys = double([out, stopSim]);
       
   case 9 % Stopping model

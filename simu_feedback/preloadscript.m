@@ -66,7 +66,7 @@ disp('Channel Info:  (Name, Type)');
 disp(BCI.ch_info);
 
 %% Generate timings
-BCI.nTrials = 2;
+BCI.nTrials = 8;
 
 time_pre_run    = 5;
 time_pre_cue    = 2;
@@ -98,45 +98,10 @@ end
 markers(end+1) = 6;
 rel_timings(end) = rel_timings(end) + time_post_run;
 
-% % here is the start of an experiment
-% % ------------------------------------------------------------------
-% % get sampling frequency of setup
-% tmngs = rel_timings(2:4:end-1)';
-% % set buffer size
-% bufferS = 64;
-% 
-% % calculate time per interval after for each buffer call
-% timeInterval = bufferS/BCI.SampleRate;
-% 
-% % i.e. 8s, just more general
-% duration = time_pre_cue+time_cue+time_mi;
-% 
-% % number of buffered signals there are per 
-% % trial 
-% nSamples = (duration)/timeInterval;
-% 
-% % calculates the timings at which each sample block (i.e. buffered signal)
-% % is sampled 
-% offset = linspace(timeInterval, duration, nSamples);
-% % repeat offset to get a matrix of size nTrials x nSamples, i.e. each row
-% % is one trial, where each entry in the column represnts the time offset
-% % from the start of the trial until the end. 
-% % e.g. 0.25 0.5 0.75 1... 7.75 8
-% offsetMat = repmat(offset, BCI.nTrials, 1);
-% 
-% % timings matrix, where each starting point of a trial is repeated nSamples
-% % times, and the offset per position is added atop
-% tMat = repmat(tmngs, 1, nSamples) + offsetMat;
-% % sStep indicates the sample position in tMat, i.e. the column
-% BCI.sStep = 1;
-% BCI.tMat = tMat;
-% BCI.fw1 = [5 10];
-% BCI.fw2 = [11 25];
-% % ------------------------------------------------------------------
 
 BCI.markers = markers;
 BCI.timings = rel_timings;
-BCI.bufferSize = 32;
+BCI.bufferSize = 64;
 BCI.trialPeriod = time_pre_cue+time_cue+time_mi;
 clear 'cTrial' 'markers' 'rel_timings' 'time_break' 'time_cue' 'time_mi' 'time_post_run' 'time_pre_cue' 'time_pre_run'
 % clear 'offset' 'tMat' 'nSample' 'bufferS' 'timeInterval' 'duration' 'offsetMat' 'timings'
