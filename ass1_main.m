@@ -27,11 +27,7 @@ addpath('./simu/TiA_client')
 addpath('./sp')
 addpath('./eeg_recordings/')
 addpath('./eeg_recordings/trial_runs/')
-
-
-% --
-% some vars
-n_ch = 16;
+addpath('./plots/')
 
 
 % --
@@ -41,8 +37,6 @@ n_ch = 16;
 
 %% save run 1
 trial_saver(1, BCI, eeg, Marker);
-
-% check data
 
 
 %% save run 2
@@ -67,8 +61,17 @@ eeg_data.marker = conc_runs.Marker.Data;
 
 BCI = conc_runs.BCI;
 
-% reshape eeg to 1 x 16 x numSamples
+% load old data
+%load('./eeg_recordings/Trial120_eeg.mat');
+%eeg_ = eeg.Data;
+%eeg_data.time = Marker.Time;
+%eeg_data.marker = Marker.Data;
+
+
+%% reshape eeg to 1 x 16 x numSamples
+n_ch = 16;
 eeg_data.flat = reshape(permute(eeg_, [2 1 3]), n_ch, []);
+fprintf('Flatened signal.\n')
 
 
 %%
@@ -102,6 +105,7 @@ eeg_data.spat = laplace_filter(eeg_data.pre);
 
 % get region of interest -> reference and cue samples
 [eeg_roi.ref, eeg_roi.ac, eeg_roi.cue, eeg_roi.trial, marker_info] = get_eeg_roi(eeg_data.spat, eeg_data.marker_rs, params, BCI);
+fprintf('Region of interest extracted.\n')
 
 
 %%

@@ -10,6 +10,10 @@ clc;
 % change directory
 cd('C:/Users/christian/git/nibci2')
 
+% remove internal paths
+rmpath('./simu')
+rmpath('./simu/TiA_client')
+
 addpath('./ignore/Supporting Code Package/');
 addpath('./ignore/Supporting Code Package/eegplot_cp')
 addpath('./ignore/Supporting Code Package/csp_20160122');
@@ -25,16 +29,8 @@ addpath('./listener')
 addpath('./pictures')
 addpath('./trained_params')
 
-%% remove internal paths
-rmpath('./simu')
-rmpath('./simu/TiA_client')
-
 
 %%
-% --
-% some vars
-n_ch = 16;
-
 % set number of splits á 30 trials for the the first part
 
 % open_system('graz_bci_model');
@@ -48,15 +44,6 @@ n_ch = 16;
 %     pause(2)
 % end
 
-%%
-
-
-
-
-
-
-% --
-% load data
 
 %% concatenate runs
 conc_runs = run_concatenator();
@@ -68,8 +55,10 @@ eeg_data.marker = conc_runs.Marker.Data;
 
 BCI = conc_runs.BCI;
 
-% reshape eeg to 1 x 16 x numSamples
+%% reshape eeg to 1 x 16 x numSamples
+n_ch = 16;
 eeg_data.flat = reshape(permute(eeg_, [2 1 3]), n_ch, []);
+fprintf('Flatened signal.\n')
 
 
 %%
@@ -104,7 +93,7 @@ fw2 = [11, 25];
 save('./trained_params/f_bands.mat', 'fw1', 'fw2');
 
 %% filter
-fb = filter_bank(eeg_data.pre, BCI, fw1, fw2);
+fb = filter_bank(eeg_data.pre, params, BCI, fw1, fw2);
 fprintf('Filterbank applied with fw1:[%d, %d] and fw2:[%d, %d].\n', fw1, fw2)
 
 
@@ -123,11 +112,17 @@ x_data = calc_features(fb, csp_hand, csp_foot, eeg_data.marker_rs, params, BCI);
 
 
 %% choose train and test data
-x_train = x_data(1:100, :);
-y_train = BCI.classlabels(1:100);
 
-x_test = x_data(101:120, :);
-y_test = BCI.classlabels(101:120);
+% test train set ratio
+n_train = round(size(x_data, 1) / 10 * 8);
+
+% training samples
+x_train = x_data(1:n_train, :);
+y_train = BCI.classlabels(1:n_train);
+
+% test samples
+x_test = x_data(n_train+1:end, :);
+y_test = BCI.classlabels(n_train+1:end);
 
 
 %%
@@ -159,28 +154,28 @@ acc = calc_accuracy(y_predict, y_test);
 %% predition test with buffer
 
 % trial for testing
-i_trial = 11
-y_true = BCI.classlabels(i_trial)
+i_trial = 9;
+y_true = BCI.classlabels(i_trial);
 
 % lda of training data
 [y_predict, linear_scores, class_probabilities] = lda_predict(model_lda, x_train(i_trial, :));
-y_predict
 
 % get roi [channels x samples x trials]
 [pre.ref, pre.ac, pre.cue, pre.trial, marker_info] = get_eeg_roi(eeg_data.pre, eeg_data.marker_rs, params, BCI);
 
 % test buffer
-y_pred_true = buffer_prediction(pre.trial(:, :, i_trial), y_true, BCI, fw1, fw2)
+y_pred_true = buffer_prediction(pre.trial(:, :, i_trial), y_true, BCI, fw1, fw2);
 
 n_samples = size(pre.trial, 2);
 
 score = [];
-jump = 64
+jump = 64;
 for si = 1:jump:n_samples-1
   read_buffer = pre.trial(:, si:si+jump, i_trial);
   y_pred_true = buffer_prediction(read_buffer, y_true, BCI, fw1, fw2);
   %i_trial = i_trial + 1;
   score = [score, y_pred_true];
 end
-mean(score)
+mu_score = mean(score);
 
+fprintf('trial: [%d], true label: [%d], lda_predict: [%d], buffer_predict correct: [%d], score: [%d]\n', i_trial, y_true, y_predict, y_pred_true, mu_score)

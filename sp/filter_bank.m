@@ -1,7 +1,7 @@
 % --
 % Fitlerbank with two bands for hand and feet movement
 
-function fb = filter_bank(eeg, BCI, fw1, fw2)
+function fb = filter_bank(eeg, params, BCI, fw1, fw2)
   % filter_bank
   % filter time series signal (2D)
   % f range: [1, 60]Hz
@@ -13,8 +13,8 @@ function fb = filter_bank(eeg, BCI, fw1, fw2)
   ord = 4;
 
   % get filter coeffs of bandpass filter
-  [b1, a1] = butter(ord, fw1 / (BCI.SampleRate / 2));
-  [b2, a2] = butter(ord, fw2 / (BCI.SampleRate / 2));
+  [b1, a1] = butter(ord, fw1 / (BCI.SampleRate / 2 / params.rs_factor));
+  [b2, a2] = butter(ord, fw2 / (BCI.SampleRate / 2 / params.rs_factor));
 
   % apply filter
   fb(1, :, :) = permute(filtfilt(b1, a1, eeg'), [2 1]);

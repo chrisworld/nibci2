@@ -3,8 +3,11 @@
 
 function y_pred_true = buffer_prediction(read_buffer, y_true, BCI, fw1, fw2)
 
+  % resample factor
+  params.rs_factor = 1;
+
   % filter band
-  fb = filter_bank(read_buffer, BCI, fw1, fw2);
+  fb = filter_bank(read_buffer, params, BCI, fw1, fw2);
 
   % read csp params
   csp = load('csp.mat');

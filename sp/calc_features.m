@@ -7,9 +7,6 @@ function x_data = calc_features(fb, csp_hand, csp_foot, marker, params, BCI)
   C_hand = [csp_hand(:, 1:2), csp_hand(:, 15:16)];
   C_foot = [csp_foot(:, 1:2), csp_foot(:, 15:16)];
 
-  % amount of csp channels per pipeline
-  n_csp_ch = size(C_hand, 2);
-
   % transform bandpass signals [channels x samples]
   s_csp_band_hand = C_hand' * squeeze(fb(1, :, :));
   s_csp_band_foot = C_foot' * squeeze(fb(2, :, :));
