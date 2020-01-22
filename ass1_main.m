@@ -1,11 +1,17 @@
 % --
 % ass1 main file
 
+% clear stuff
 close all;
 clear all;
 clc;
 
-% add library path
+%% add library path
+
+% change directory
+cd('C:/Users/christian/git/nibci2')
+
+% some other packages
 addpath('./ignore/Supporting Code Package/');
 addpath('./ignore/Supporting Code Package/lda_20160129/reducedOutlierRejection');
 addpath('./ignore/Supporting Code Package/eegplot_cp')
@@ -19,6 +25,8 @@ addpath('./gui')
 addpath('./simu')
 addpath('./simu/TiA_client')
 addpath('./sp')
+addpath('./eeg_recordings/')
+addpath('./eeg_recordings/trial_runs/')
 
 
 % --
@@ -33,6 +41,8 @@ n_ch = 16;
 
 %% save run 1
 trial_saver(1, BCI, eeg, Marker);
+
+% check data
 
 
 %% save run 2
@@ -98,7 +108,7 @@ eeg_data.spat = laplace_filter(eeg_data.pre);
 % --
 % calculate psd
 
-[psd_c1, psd_c2] = calc_psd(eeg_roi.cue, params, BCI)
+[psd_c1, psd_c2] = calc_psd(eeg_roi.cue, params, BCI);
 
 
 %%

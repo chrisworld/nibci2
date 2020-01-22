@@ -4,6 +4,7 @@
 ignore/
 eeg_recordings/trial_runs
 trained_params/
+old_data/
 
 # --
 # Matlab specific stuff

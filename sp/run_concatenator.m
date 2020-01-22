@@ -6,39 +6,67 @@ function conc_runs = run_concatenator()
   % file dir
   file_dir = './eeg_recordings/trial_runs/';
 
-  % load runs
-  trial_run1 = load([file_dir, 'trial_run1.mat'], 'BCI', 'eeg', 'Marker');
-  trial_run2 = load([file_dir, 'trial_run2.mat'], 'BCI', 'eeg', 'Marker');
-  trial_run3 = load([file_dir, 'trial_run3.mat'], 'BCI', 'eeg', 'Marker');
-  trial_run4 = load([file_dir, 'trial_run4.mat'], 'BCI', 'eeg', 'Marker');
+  % get files
+  files = dir([file_dir, '*.mat']);
 
-  % --
-  % concatenate BCI
+  % if no files
+  if length(files) == 0
+
+    fprintf('***no files to concatenate')
+    return
+  end
+
+  % init conc_runs
+  conc_runs.date = date;
+
+  % fist file to init conc_runs
+  trial_run1 = load([file_dir, files(1).name], 'BCI', 'eeg', 'Marker');
+  fprintf('concatenate file: %s \n', files(1).name)
+
   conc_runs.BCI = trial_run1.BCI;
-
-  % update n-trials var
-  conc_runs.BCI.nTrials = trial_run1.BCI.nTrials + trial_run2.BCI.nTrials + trial_run3.BCI.nTrials + trial_run4.BCI.nTrials;
-
-  % concatenate markers
-  conc_runs.BCI.markers = [trial_run1.BCI.markers, trial_run2.BCI.markers, trial_run3.BCI.markers, trial_run4.BCI.markers];
-
-  % concatenate timings
-  conc_runs.BCI.timings = [trial_run1.BCI.timings, trial_run2.BCI.timings, trial_run3.BCI.timings, trial_run4.BCI.timings];
-
-  % concatenate classlabels
-  conc_runs.BCI.classlabels = [trial_run1.BCI.classlabels; trial_run2.BCI.classlabels; trial_run3.BCI.classlabels; trial_run4.BCI.classlabels];
+  conc_runs.eeg.Time = trial_run1.eeg.Time;
+  conc_runs.eeg.Data = trial_run1.eeg.Data;
+  conc_runs.Marker.Time = trial_run1.Marker.Time;
+  conc_runs.Marker.Data = trial_run1.Marker.Data;
 
 
   % --
-  % concatenate eeg
-  conc_runs.eeg.Time = [trial_run1.eeg.Time; trial_run2.eeg.Time; trial_run3.eeg.Time; trial_run4.eeg.Time];
-  conc_runs.eeg.Data = cat(3, trial_run1.eeg.Data, trial_run2.eeg.Data, trial_run3.eeg.Data, trial_run4.eeg.Data);
+  % concatenate BCI run files
+
+  for file_idx = 2:length(files)
+
+    % print file name
+    fprintf('concatenate file: %s \n', files(file_idx).name)
+
+    % load file
+    trial_run = load([file_dir, files(file_idx).name], 'BCI', 'eeg', 'Marker');
+
+    % update n-trials var
+    conc_runs.BCI.nTrials = conc_runs.BCI.nTrials + trial_run.BCI.nTrials;
+
+    % concatenate markers
+    conc_runs.BCI.markers = cat(2, conc_runs.BCI.markers, trial_run.BCI.markers);
+
+    % concatenate timings
+    conc_runs.BCI.timings = cat(2, conc_runs.BCI.timings, trial_run.BCI.timings);
+
+    % concatenate classlabels
+    conc_runs.BCI.classlabels = cat(1, conc_runs.BCI.classlabels, trial_run.BCI.classlabels);
 
 
-  % --
-  % concatenate Marker
-  conc_runs.Marker.Time = [trial_run1.Marker.Time; trial_run2.Marker.Time; trial_run3.Marker.Time; trial_run4.Marker.Time];
-  conc_runs.Marker.Data = [trial_run1.Marker.Data; trial_run2.Marker.Data; trial_run3.Marker.Data; trial_run4.Marker.Data];
+    % --
+    % concatenate eeg
+    conc_runs.eeg.Time = cat(1, conc_runs.eeg.Time, trial_run.eeg.Time);
+    conc_runs.eeg.Data = cat(3, conc_runs.eeg.Data, trial_run.eeg.Data);
 
+
+    % --
+    % concatenate Marker
+    conc_runs.Marker.Time = cat(1, conc_runs.Marker.Time, trial_run.Marker.Time);
+    conc_runs.Marker.Data = cat(1, conc_runs.Marker.Data, trial_run.Marker.Data);
+
+  end
+  
   % print message
-  fprintf('Trial runs concatenated.\n')
+  fprintf('--Trial runs concatenated.\n')
+

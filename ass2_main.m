@@ -5,7 +5,11 @@ close all;
 clear all;
 clc;
 
-% add library path
+%% add library path
+
+% change directory
+cd('C:/Users/christian/git/nibci2')
+
 addpath('./ignore/Supporting Code Package/');
 addpath('./ignore/Supporting Code Package/eegplot_cp')
 addpath('./ignore/Supporting Code Package/csp_20160122');

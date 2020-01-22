@@ -5,7 +5,7 @@ function [eeg_pre, params] = pre_filter_eeg(eeg, params, BCI)
 
   % band pass
   params.bp_order = 4;
-  params.bp_f_win_pre = [1, 60];
+  params.bp_f_win_pre = [4, 60];
 
   % get filter coeffs of bandpass filter
   [params.b_bp, params.a_bp] = butter(params.bp_order, params.bp_f_win_pre / (BCI.SampleRate / 2));
