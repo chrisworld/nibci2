@@ -110,7 +110,7 @@ feedbackAx = axes(...
     'Position',[0 0 1 1]);
 
 plot(1,1, '.w', 'MarkerSize', 200, 'Parent', feedbackAx);
-set(feedbackAx, 'XTick', [], 'YTick', [], 'XTickLabel', [],'YTickLabel', [],'Color','k');
+set(feedbackAx, 'XTick', [], 'YTick', [], 'XTickLabel', [],'YTickLabel', [],'Color','k','Visible','off');
 
 %%
 

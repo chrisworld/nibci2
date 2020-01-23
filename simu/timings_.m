@@ -34,8 +34,8 @@ switch flag,
                 set(hAxes(3),'Visible','off');
                % label = 2: foot
               else
-                set(hAxes(1),'Visible','on');
-                set(hAxes(2),'Visible','off');
+                set(hAxes(1),'Visible','off');
+                set(hAxes(2),'Visible','on');
                 set(hAxes(3),'Visible','off');
               end
           case 5
